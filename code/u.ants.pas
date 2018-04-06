@@ -15,14 +15,14 @@ type
 
   PAnt = ^TAnt;
   TAnt = record
-    pos :TVec2d;  //position
-    lastPos :TVec2d; //previous position;
-    dir :TVec2d;  //direction to go
-    speed   :single;
-    traveled  :single;  //distance traveled
-    friction  :single;
+      pos :TVec2d;  //position
+      lastPos :TVec2d; //previous position;
+      dir :TVec2d;  //direction to go
+      speed   :single;
+      traveled  :single;  //distance traveled
+      friction  :single;
 
-    ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove
+      ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove
   end;
 
   //A list of Ants, procedures and functions most time acts over all ants
