@@ -15,14 +15,23 @@ type
 
   PAnt = ^TAnt;
   TAnt = record
+    private
+      dir   : TVec2d;  //direction to go
+      rot   : single;  //rotation equivalent to current direciton;
+      procedure updateRot;
+      procedure updateDir;
+    public
       pos :TVec2d;  //position
       lastPos :TVec2d; //previous position;
-      dir :TVec2d;  //direction to go
       speed   :single;
       traveled  :single;  //distance traveled
       friction  :single;
 
       ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove
+      procedure setDir( const aNormalizedVec :TVec2d );
+      procedure setDirAndNormalize( const unormalizedVec :TVec2d );
+      procedure setRot( rad :single );
+      procedure rotate( rad :single );
   end;
 
   //A list of Ants, procedures and functions most time acts over all ants
@@ -32,8 +41,10 @@ type
     public
       items :TAntList;
       antOwner :boolean;
+      img :TSprite;
       constructor Create;
       destructor Destroy;override;
+      procedure LoadRes;
       procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore );  //create and init a bunch of ants, and add them to the list
       procedure draw;
       procedure update;
@@ -86,6 +97,11 @@ begin
   end;
 end;
 
+procedure TAntPack.LoadRes;
+begin
+  img := sdl.newSprite( sdl.loadTexture('antWalk_00') );
+end;
+
 procedure TAntPack.addNewAndInit( amount: integer; listRef:TListRef = lrIgnore);
 var
   ant :PAnt;
@@ -112,11 +128,50 @@ begin
   begin
     ant := items.list[i];
     ant.lastPos :=  ant.pos;
-    ant.dir.rotate( random*cfg.antErratic - cfg.antErratic / 2);
+    ant.rotate( random*cfg.antErratic - cfg.antErratic / 2);
     ant.pos := ant.pos + ant.dir * ant.speed;
     ant.speed := ant.speed + cfg.antAccel;
     if ant.speed > cfg.antMaxSpeed then ant.speed := cfg.antMaxSpeed;
   end;
+end;
+
+{ TAnt }
+
+procedure TAnt.rotate(rad: single);
+begin
+  dir.rotate(rad);
+  rot := rot +  rad;
+  //rotate then aditional child vectors bellow
+end;
+
+procedure TAnt.setDir(const aNormalizedVec: TVec2d);
+begin
+  dir := aNormalizedVec;
+  updateRot;
+end;
+
+procedure TAnt.setDirAndNormalize(const unormalizedVec: TVec2d);
+begin
+  dir := unormalizedVec;
+  dir.normalize;
+  updateRot
+end;
+
+procedure TAnt.setRot(rad: single);
+begin
+  rot := rad;
+  //update dirs
+  updateDir;
+end;
+
+procedure TAnt.updateDir;
+begin
+  dir := vecDir( rot );
+end;
+
+procedure TAnt.updateRot;
+begin
+    if dir.y>0 then rot := arcCos( dir.y ) else rot := pi*2 - arcCos( dir.y );
 end;
 
 end.
