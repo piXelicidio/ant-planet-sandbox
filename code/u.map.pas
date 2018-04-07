@@ -79,6 +79,7 @@ begin
   //load
   fGround := sdl.loadTexture('images\ground01.png');
   fBlock := sdl.loadTexture('images\block01.png');
+  ants.Init;
   //
   fW := cfg.mapW;
   fH := cfg.mapH;

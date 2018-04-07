@@ -44,7 +44,7 @@ type
       img :TSprite;
       constructor Create;
       destructor Destroy;override;
-      procedure LoadRes;
+      procedure Init;
       procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore );  //create and init a bunch of ants, and add them to the list
       procedure draw;
       procedure update;
@@ -93,13 +93,15 @@ begin
     y1 := Floor( ant.pos.y );
     x2 := Floor( ant.pos.x + ant.dir.x * 5 );
     y2 := Floor( ant.pos.y + ant.dir.y * 5 );
-    SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
+    //SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
+    //SDL_RenderCopy(sdl.rend, img.srcTex, nil, nil);
+    sdl.drawSprite(img, x1, y1, ant.rot * 180 / pi);
   end;
 end;
 
-procedure TAntPack.LoadRes;
+procedure TAntPack.Init;
 begin
-  img := sdl.newSprite( sdl.loadTexture('antWalk_00') );
+  img := sdl.newSprite( sdl.loadTexture('images\antWalk_00.png') );
 end;
 
 procedure TAntPack.addNewAndInit( amount: integer; listRef:TListRef = lrIgnore);
@@ -114,7 +116,7 @@ begin
     ant.pos.y := random*500;
     ant.speed := cfg.antMaxSpeed * 0.1;
     ant.lastPos := ant.pos;
-    ant.dir := vecDir(random*pi);
+    ant.setRot(random*pi*2);
     ant.ListRefIdx[listRef] :=  items.add(ant);
   end;
 end;
