@@ -98,7 +98,7 @@ begin
     setLength(grid[i], fH);
     for j := 0 to fH-1 do
     begin
-      grid[i,j].pass := random > 0.04;
+      grid[i,j].pass := random > 0.06;
     end;
   end;
 end;

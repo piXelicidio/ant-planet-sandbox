@@ -16,6 +16,7 @@ TRadial = record
     function getDir( angle : single):PVec2d;
     function getDirByIdx( idx :integer ):PVec2d;
     function fixIdx( idx :integer ):integer;
+    function IdxToAngle( idx : integer ):single;
 end;
 
 implementation
@@ -50,6 +51,11 @@ begin
   begin
     writeln('cascara');
   end;
+end;
+
+function TRadial.IdxToAngle(idx: integer): single;
+begin
+  result := fixIdx( idx ) * step;
 end;
 
 procedure TRadial.Init(N: integer);

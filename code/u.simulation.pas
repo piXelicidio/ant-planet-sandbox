@@ -30,10 +30,9 @@ begin
   ants.addNewAndInit(cfg.numAnts, lrOwner);
 end;
 
-
 procedure TSimulation.update;
 begin
-  //map.update;
+  map.update;
   ants.update;
   ants.solveCollisions( map.canPass );
 end;

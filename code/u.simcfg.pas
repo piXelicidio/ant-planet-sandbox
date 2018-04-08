@@ -52,7 +52,7 @@ initialization
   begin
     windowW := 1280;
     windowH := 720;
-    numAnts := 1000;
+    numAnts := 300;
     antMaxSpeed := 1.2;
     antErratic := 0.2;
     antAccel := 0.1;
