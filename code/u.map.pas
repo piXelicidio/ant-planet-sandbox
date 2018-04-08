@@ -3,6 +3,7 @@ unit u.map;
 interface
 
 uses
+      system.math,
       px.sdl,
       sdl2,
       u.ants,
@@ -30,7 +31,7 @@ type
     procedure init;
     procedure update;
     procedure draw;
-    //procedure resolve_BlockingCollisions_
+    function canPass( x, y : single ):boolean;
     property W:integer read fW;
     property H:integer read fH;
   end;
@@ -41,6 +42,16 @@ var
 implementation
 
 { TMap }
+
+function TMap.canPass(x, y: single): boolean;
+var
+  xg, yg :integer;
+begin
+  xg := floor( x / cfg.mapCellSize );
+  yg := floor( y / cfg.mapCellSize );
+  result := false;
+  if xg>=0  then if xg<W then if yg>=0 then if yg<H then result := grid[xg, yg].pass;
+end;
 
 constructor TMap.Create;
 begin
@@ -95,6 +106,7 @@ begin
     end;
   end;
 end;
+
 
 procedure TMap.update;
 begin

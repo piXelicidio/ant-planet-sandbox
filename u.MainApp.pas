@@ -45,6 +45,7 @@ end;
 procedure TMainApp.update;
 begin
   sim.update;
+  SDL_Delay(10);
 end;
 
 procedure TMainApp.draw;

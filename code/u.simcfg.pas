@@ -2,6 +2,8 @@ unit u.simcfg;
 //defaults, globals, (fight against hardcoding)...
 interface
 
+uses px.vec2d;
+
 const
   CFG_MaxScanDirs = 8; //Max Index of scan directions of cell neibors..
 
@@ -33,15 +35,15 @@ type
     antMaxSpeed :single;
     antErratic :single;
     antAccel :single;
+    antRadialScanNum :integer;
     mapW  :integer;
     mapH  :integer;
     mapCellSize :integer;
-
- //    mapGridComScan :array[0..CFG_SCANDIRS] of TPt;
   end;
 
 var
-  cfg     :TSimCfg;
+  cfg         :TSimCfg;
+
 implementation
 
 initialization
@@ -54,6 +56,7 @@ initialization
     antMaxSpeed := 1.2;
     antErratic := 0.2;
     antAccel := 0.1;
+    antRadialScanNum := 16;
     mapW := 18;
     mapH := 10;
     mapCellSize := 64;

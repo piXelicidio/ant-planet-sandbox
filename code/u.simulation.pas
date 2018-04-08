@@ -25,10 +25,12 @@ begin
   map.ants.addNewAndInit(cfg.numAnts, lrOwner);
 end;
 
+
 procedure TSimulation.update;
 begin
   //map.update;
   map.ants.update;
+  map.ants.solveCollisions( map.canPass );
 end;
 
 procedure TSimulation.draw;

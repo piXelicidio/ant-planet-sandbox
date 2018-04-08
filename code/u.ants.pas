@@ -23,6 +23,7 @@ type
       procedure updateDir;
     public
       pos :TVec2d;  //position
+      wishPos :TVec2d; //next position it wants to go, map has final word
       lastPos :TVec2d; //previous position;
       speed   :single;
       traveled  :single;  //distance traveled
@@ -38,6 +39,8 @@ type
   //A list of Ants, procedures and functions most time acts over all ants
   TAntList = TList<PAnt>;
 
+  TCanPassFunc = function( x, y: single):boolean of object;
+
   TAntPack = class
     private
       fRadial :TRadial;
@@ -51,6 +54,7 @@ type
       procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore );  //create and init a bunch of ants, and add them to the list
       procedure draw;
       procedure update;
+      procedure solveCollisions( canPassFunc:TCanPassFunc );
       procedure disposeAll;
   end;
 
@@ -88,29 +92,6 @@ var
   x1, y1, x2, y2 :integer;
   i :integer;
   ant :PAnt;
-  idx :integer;
-  rdir1 :PVec2d;
-  rdir2 :PVec2d;
-  procedure drawScan;
-  var
-    iscan :integer;
-    x3,y3 :integer;
-  begin
-    idx := fRadial.getDirIdx( ant.rot );
-    for iscan := 1 to 3 do
-    begin
-      rdir1 := fRadial.getDirByIdx(idx+iscan);
-      rdir2 := fRadial.getDirByIdx(idx-iscan);
-      x3 := x1 + floor(rdir1.x * 30);
-      y3 := y1 +  floor(rdir1.y * 30);
-      sdl.setColor(255,255,25);
-      SDL_RenderDrawLine(sdl.rend, x1, y1, x3, y3);
-      x3 := x1 + floor(rdir2.x * 30);
-      y3 := y1 +  floor(rdir2.y * 30);
-      sdl.setColor(255,255,25);
-      SDL_RenderDrawLine(sdl.rend, x1, y1, x3, y3);
-    end;
-  end;
 begin
   for i := 0 to items.Count-1 do
   begin
@@ -125,15 +106,30 @@ begin
   //  sdl.drawSprite(img, x1, y1);
    { sdl.setColor(255,255,255);
     SDL_RenderDrawPoint(sdl.rend, x1, y1);}
-    sdl.setColor(255,255,255);
-    SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
-    drawScan;
   end;
 end;
 
 procedure TAntPack.Init;
 begin
   img := sdl.newSprite( sdl.loadTexture('images\antWalk_00.png') );
+end;
+
+procedure TAntPack.solveCollisions(canPassFunc: TCanPassFunc);
+  var
+  i: Integer;
+  ant :PAnt;
+begin
+  for i := 0 to items.Count-1 do
+  begin
+    ant := items.List[i];
+    if canPassFunc( ant.wishPos.x, ant.wishPos.y) then
+    begin
+      ant.pos := ant.wishPos;
+    end else
+    begin //solve collisions
+
+    end;
+  end;
 end;
 
 procedure TAntPack.addNewAndInit( amount: integer; listRef:TListRef = lrIgnore);
@@ -162,9 +158,9 @@ begin
   for i:= 0 to items.count-1 do
   begin
     ant := items.list[i];
-    ant.lastPos :=  ant.pos;
+    //ant.lastPos :=  ant.pos;
     ant.rotate( random*cfg.antErratic - cfg.antErratic / 2);
-    ant.pos := ant.pos + ant.dir * ant.speed;
+    ant.wishPos := ant.pos + ant.dir * ant.speed;
     ant.speed := ant.speed + cfg.antAccel;
     if ant.speed > cfg.antMaxSpeed then ant.speed := cfg.antMaxSpeed;
   end;
