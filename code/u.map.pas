@@ -5,14 +5,26 @@ interface
 uses
       system.math,
       px.sdl,
+      px.vec2d,
       sdl2,
       u.ants,
       u.simcfg,
       u.cell;
 
 type
+  TSeen = record
+    frameTime :integer;
+    where :TVec2d;
+  end;
+
+  TPheromInfo = record
+    seen :array[TAntInterests] of Tseen;
+  end;
+
   TMapData = record
     pass :boolean;
+    pheromInfo :TPheromInfo;
+
   end;
 
   TMap = class
@@ -82,6 +94,7 @@ end;
 procedure TMap.init;
 var
   i,j :integer;
+  foo :single;
 begin
   //load
   fGround := sdl.loadTexture('images\ground01.png');
@@ -99,6 +112,8 @@ begin
     for j := 0 to fH-1 do
     begin
       grid[i,j].pass := random > 0.06;
+      foo := random*1;
+      grid[i,j].pheromInfo.seen[aiFood].frameTime := -1;
     end;
   end;
 end;

@@ -42,7 +42,8 @@ type
   end;
 
 var
-  cfg         :TSimCfg;
+  cfg           :TSimCfg;
+  simFrameTime  :integer;
 
 implementation
 
@@ -61,5 +62,6 @@ initialization
     mapH := 10;
     mapCellSize := 64;
   end;
+  simFrameTime := 0;
 finalization
 end.
