@@ -9,6 +9,10 @@ interface
 type
   TSimulation = class
     public
+      ants  :TAntPack;
+      map   :TMap;
+      constructor create;
+      destructor Destroy;override;
       procedure init;
       procedure update;
       procedure draw;
@@ -22,25 +26,40 @@ implementation
 procedure TSimulation.init;
 begin
   map.init;
-  map.ants.addNewAndInit(cfg.numAnts, lrOwner);
+  ants.Init;
+  ants.addNewAndInit(cfg.numAnts, lrOwner);
 end;
 
 
 procedure TSimulation.update;
 begin
   //map.update;
-  map.ants.update;
-  map.ants.solveCollisions( map.canPass );
+  ants.update;
+  ants.solveCollisions( map.canPass );
+end;
+
+constructor TSimulation.create;
+begin
+  map := TMap.Create;
+  ants := TAntPack.Create;
+  ants.antOwner := true;
+end;
+
+destructor TSimulation.Destroy;
+begin
+  map.Free;
+  ants.Free;
+  inherited;
 end;
 
 procedure TSimulation.draw;
 begin
   map.draw;
+  ants.draw;
 end;
 
 initialization
   sim := TSimulation.Create;
 finalization
   sim.Free;
-
 end.
