@@ -25,7 +25,6 @@ type
     fBlock :PSDL_Texture;
   public
     grid  :array of array of TMapData;
-    ants  :TAntPack;
     constructor Create;
     destructor Destroy;override;
     procedure init;
@@ -55,13 +54,11 @@ end;
 
 constructor TMap.Create;
 begin
-  ants := TAntPack.Create;
-  ants.antOwner := true;
 end;
 
 destructor TMap.Destroy;
 begin
-  ants.Free;
+
 end;
 
 procedure TMap.draw;
@@ -80,7 +77,6 @@ begin
       if grid[i,j].pass then SDL_RenderCopy(sdl.rend, fGround, nil, @rect )
         else SDL_RenderCopy(sdl.rend, fBlock, nil, @rect );
     end;
-  ants.draw;
 end;
 
 procedure TMap.init;
@@ -90,7 +86,7 @@ begin
   //load
   fGround := sdl.loadTexture('images\ground01.png');
   fBlock := sdl.loadTexture('images\block01.png');
-  ants.Init;
+
   //
   fW := cfg.mapW;
   fH := cfg.mapH;
@@ -113,8 +109,4 @@ begin
 
 end;
 
-initialization;
-  map := TMap.Create;
-finalization;
-  map.Free;
 end.
