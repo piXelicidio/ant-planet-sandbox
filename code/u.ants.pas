@@ -8,7 +8,8 @@ uses
   sdl2,
   generics.collections,
   system.Math,
-  u.simcfg ;
+  u.simcfg,
+  u.utils;
 
 type
   TListRef = (lrIgnore, lrOwner, lrGrid);
@@ -38,6 +39,8 @@ type
   TAntList = TList<PAnt>;
 
   TAntPack = class
+    private
+      fRadial :TRadial;
     public
       items :TAntList;
       antOwner :boolean;
@@ -85,17 +88,46 @@ var
   x1, y1, x2, y2 :integer;
   i :integer;
   ant :PAnt;
+  idx :integer;
+  rdir1 :PVec2d;
+  rdir2 :PVec2d;
+  procedure drawScan;
+  var
+    iscan :integer;
+    x3,y3 :integer;
+  begin
+    idx := fRadial.getDirIdx( ant.rot );
+    for iscan := 1 to 3 do
+    begin
+      rdir1 := fRadial.getDirByIdx(idx+iscan);
+      rdir2 := fRadial.getDirByIdx(idx-iscan);
+      x3 := x1 + floor(rdir1.x * 30);
+      y3 := y1 +  floor(rdir1.y * 30);
+      sdl.setColor(255,255,25);
+      SDL_RenderDrawLine(sdl.rend, x1, y1, x3, y3);
+      x3 := x1 + floor(rdir2.x * 30);
+      y3 := y1 +  floor(rdir2.y * 30);
+      sdl.setColor(255,255,25);
+      SDL_RenderDrawLine(sdl.rend, x1, y1, x3, y3);
+    end;
+  end;
 begin
   for i := 0 to items.Count-1 do
   begin
     ant := items.list[i];
     x1 := Floor( ant.pos.x );
     y1 := Floor( ant.pos.y );
-    x2 := Floor( ant.pos.x + ant.dir.x * 5 );
-    y2 := Floor( ant.pos.y + ant.dir.y * 5 );
-    //SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
+    x2 := Floor( ant.pos.x + ant.dir.x * 20 );
+    y2 := Floor( ant.pos.y + ant.dir.y * 20 );
+
     //SDL_RenderCopy(sdl.rend, img.srcTex, nil, nil);
     sdl.drawSprite(img, x1, y1, ant.rot * 180 / pi);
+  //  sdl.drawSprite(img, x1, y1);
+   { sdl.setColor(255,255,255);
+    SDL_RenderDrawPoint(sdl.rend, x1, y1);}
+    sdl.setColor(255,255,255);
+    SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
+    drawScan;
   end;
 end;
 
@@ -109,6 +141,7 @@ var
   ant :PAnt;
   i: Integer;
 begin
+  fRadial.Init(cfg.antRadialScanNum);
   for i := 0 to amount-1 do
   begin
     new(ant);
