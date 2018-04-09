@@ -22,7 +22,7 @@ type
   end;
 
   TMapData = record
-    pass :boolean;
+    passLevel :integer;           //they can't pass to a higer level Obstacle
     pheromInfo :TPheromInfo;
     cell :TCell;
   end;
@@ -43,7 +43,7 @@ type
     procedure finalize;
     procedure update;
     procedure draw;
-    function canPass( x, y : single ):boolean;
+    function getPassLevel( x, y : single ):integer;
     procedure RemoveCell(xg, yg: integer );
     procedure SetCell(xg, yg: integer; cellType:TCellTypes);
     property W:integer read fW;
@@ -57,15 +57,6 @@ implementation
 
 { TMap }
 
-function TMap.canPass(x, y: single): boolean;
-var
-  xg, yg :integer;
-begin
-  xg := floor( x / cfg.mapCellSize );
-  yg := floor( y / cfg.mapCellSize );
-  result := false;
-  if xg>=0  then if xg<W then if yg>=0 then if yg<H then result := grid[xg, yg].pass;
-end;
 
 constructor TMap.Create;
 begin
@@ -91,8 +82,9 @@ begin
       rect.h := cfg.mapCellSize;
       if grid[i,j].cell=nil then
       begin
-        if grid[i,j].pass then SDL_RenderCopy(sdl.rend, fGround, nil, @rect )
-          else SDL_RenderCopy(sdl.rend, fBlock, nil, @rect );
+        if grid[i,j].passLevel = CFG_passLevelGround
+                then SDL_RenderCopy(sdl.rend, fGround, nil, @rect )
+                else SDL_RenderCopy(sdl.rend, fBlock, nil, @rect );
       end else
       begin
         grid[i,j].cell.draw(rect.x, rect.y);
@@ -115,6 +107,16 @@ begin
           end;
 end;
 
+function TMap.getPassLevel(x, y: single): integer;
+var
+  xg, yg :integer;
+begin
+  xg := floor( x / cfg.mapCellSize );
+  yg := floor( y / cfg.mapCellSize );
+  if (xg >= 0)  and (xg < W) and (yg >= 0) and (yg < H) then result := grid[xg, yg].passLevel
+                                                        else result := CFG_passLevelOut;
+end;
+
 procedure TMap.init;
 var
   i,j :integer;
@@ -135,8 +137,8 @@ begin
     setLength(grid[i], fH);
     for j := 0 to fH-1 do
     begin
-      grid[i,j].pass := random > 0.06;
-      foo := random*1;
+      if random > 0.06 then grid[i,j].passLevel := CFG_passLevelGround
+                       else grid[i,j].passLevel := CFG_passLevelBlock  ;
       grid[i,j].pheromInfo.seen[ctFood].frameTime := -1;
       grid[i,j].cell := nil;
     end;
@@ -152,7 +154,7 @@ begin
   if (xg>=0) and (xg<W) and (yg>=0) and (yg<H)  then
   with grid[xg,yg] do
   begin
-    pass := true;
+    passLevel := CFG_passLevelGround;
     if cell<>nil then
     begin
       if cell.NeedDestroyWhenRemoved then cell.Free;
@@ -168,7 +170,7 @@ begin
     RemoveCell(xg,yg);
     with grid[xg, yg] do
       case cellType of
-        ctBlock: pass := false;
+        ctBlock: passLevel := CFG_passLevelBlock;
         ctGround:;//nothing needed;
         ctGrass: cell := cellFactory.getGrass;
         ctFood: cell := cellFactory.newFood;

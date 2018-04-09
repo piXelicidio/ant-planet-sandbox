@@ -38,7 +38,7 @@ procedure TSimulation.update;
 begin
   map.update;
   ants.update;
-  ants.solveCollisions( map.canPass );
+  ants.solveCollisions( map.getPassLevel );
 end;
 
 constructor TSimulation.create;

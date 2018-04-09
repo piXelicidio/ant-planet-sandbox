@@ -25,6 +25,10 @@ const
            (x: 0; y: 1),
            (x: 1; y: 1) ) ;
 
+  CFG_passLevelGround = 0;
+  CFG_passLevelBlock = 1;
+  CFG_passLevelOut = high(integer);
+
 type
 
   PSimCfg = ^TSimCfg;

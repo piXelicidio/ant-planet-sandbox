@@ -39,7 +39,7 @@ type
   //A list of Ants, procedures and functions most time acts over all ants
   TAntList = TList<PAnt>;
 
-  TCanPassFunc = function( x, y: single):boolean of object;
+  TPassLevelFunc = function( x, y: single):integer of object;
 
   TAntPack = class
     private
@@ -54,7 +54,7 @@ type
       procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore );  //create and init a bunch of ants, and add them to the list
       procedure draw;
       procedure update;
-      procedure solveCollisions( canPassFunc:TCanPassFunc );
+      procedure solveCollisions( passLevelFunc: TPassLevelFunc );
       procedure disposeAll;
   end;
 
@@ -116,7 +116,8 @@ begin
   img.center.y := (img.srcRect.h div 2)+1;
 end;
 
-procedure TAntPack.solveCollisions(canPassFunc: TCanPassFunc);
+{Solve ants collisions, allow or fix movement}
+procedure TAntPack.solveCollisions(passLevelFunc: TPassLevelfunc);
   var
   i: Integer;
   ant :PAnt;
@@ -125,29 +126,32 @@ procedure TAntPack.solveCollisions(canPassFunc: TCanPassFunc);
   idx :integer;
   scanIdx : integer;
   vTest :TVec2d;
+  currLevel :integer;
 begin
   for i := 0 to items.Count-1 do
   begin
     ant := items.List[i];
-    if canPassFunc( ant.wishPos.x, ant.wishPos.y) then
+    {Obstacles are determined by the passLevel integer value
+     ants can walk to same or lower level and can't go to higer level}
+    currLevel := passLevelFunc( ant.pos.x, ant.pos.y );
+    if passLevelFunc( ant.wishPos.x, ant.wishPos.y) <= currLevel then
     begin
       ant.pos := ant.wishPos;
     end else
     begin //solve collisions
       //do a radial scan to find best free way to go
       idx := fRadial.getDirIdx(ant.rot);
-      found := false;
       radCount := 0;
       repeat
         inc(radCount);
         scanIdx :=  idx + radCount;
         vTest := ant.pos + (fRadial.getDirByIdx( scanIdx )^) * ant.speed;
-        if canPassFunc( vTest.x, vTest.y) then found:=true
+        if passLevelFunc( vTest.x, vTest.y) <= currLevel then found:=true
           else begin
             //try the other negative side
             scanIdx := idx - radCount;
             vTest := ant.pos + (fRadial.getDirByIdx( scanIdx )^) * ant.speed;
-            found := canPassFunc( vTest.x, vTest.y );
+            found := passLevelFunc( vTest.x, vTest.y) <= currLevel;
           end;
       until found or (radCount > Length(fRadial.dirs));
       if found then
@@ -161,6 +165,7 @@ begin
 
       end;
     end;
+
   end;
 end;
 
@@ -190,7 +195,6 @@ begin
   for i:= 0 to items.count-1 do
   begin
     ant := items.list[i];
-    //ant.lastPos :=  ant.pos;
     ant.rotate( random*cfg.antErratic - cfg.antErratic / 2);
     ant.wishPos := ant.pos + ant.dir * ant.speed;
     ant.speed := ant.speed + cfg.antAccel;
