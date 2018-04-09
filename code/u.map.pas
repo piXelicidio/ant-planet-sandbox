@@ -46,17 +46,22 @@ type
     function getPassLevel( x, y : single ):integer;
     procedure RemoveCell(xg, yg: integer );
     procedure SetCell(xg, yg: integer; cellType:TCellTypes);
+    procedure detectAntCellEvents( ants :TAntPack );
+    function WorldToGrid( vec:TVec2d ):TVec2di;inline;
+    function CheckInGrid( xg, yg :integer ):boolean;inline;
     property W:integer read fW;
     property H:integer read fH;
   end;
-
-var
-  map :TMap;
 
 implementation
 
 { TMap }
 
+
+function TMap.CheckInGrid(xg, yg: integer): boolean;
+begin
+  result := (xg >= 0)  and (xg < W) and (yg >= 0) and (yg < H)
+end;
 
 constructor TMap.Create;
 begin
@@ -65,6 +70,18 @@ end;
 destructor TMap.Destroy;
 begin
 
+end;
+
+procedure TMap.detectAntCellEvents(ants: TAntPack);
+var
+  i :integer;
+  ant :PAnt;
+begin
+  for i := 0 to ants.items.Count do
+  begin
+    ant := ants.items.List[i];
+
+  end;
 end;
 
 procedure TMap.draw;
@@ -182,6 +199,12 @@ end;
 procedure TMap.update;
 begin
 
+end;
+
+function TMap.WorldToGrid(vec: TVec2d): TVec2di;
+begin
+  result.x := floor( vec.x / cfg.mapCellSize );
+  result.y := floor( vec.y / cfg.mapCellSize );
 end;
 
 end.

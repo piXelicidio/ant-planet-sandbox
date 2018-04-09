@@ -39,6 +39,7 @@ begin
   map.update;
   ants.update;
   ants.solveCollisions( map.getPassLevel );
+  map.detectAntCellEvents( ants );
 end;
 
 constructor TSimulation.create;

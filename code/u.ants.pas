@@ -28,7 +28,7 @@ type
       speed   :single;
       traveled  :single;  //distance traveled
       friction  :single;
-
+      gridPos :TVec2di;
       ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove
       procedure setDir( const aNormalizedVec :TVec2d );
       procedure setDirAndNormalize( const unormalizedVec :TVec2d );
@@ -134,6 +134,7 @@ begin
     {Obstacles are determined by the passLevel integer value
      ants can walk to same or lower level and can't go to higer level}
     currLevel := passLevelFunc( ant.pos.x, ant.pos.y );
+    ant.lastPos := ant.pos;
     if passLevelFunc( ant.wishPos.x, ant.wishPos.y) <= currLevel then
     begin
       ant.pos := ant.wishPos;
@@ -161,11 +162,9 @@ begin
       end else
       begin
         //it's a Trap!! escape..
-        //TODO: allow move (or teleport ) to closest empty cell;
-
+        //now is very rare to happend since ant can walk same "passLevel"
       end;
     end;
-
   end;
 end;
 
@@ -180,6 +179,8 @@ begin
     new(ant);
     ant.pos.x := random*700;
     ant.pos.y := random*500;
+    ant.gridPos.x := -1;
+    ant.gridPos.y := -1;
     ant.speed := cfg.antMaxSpeed * 0.1;
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
