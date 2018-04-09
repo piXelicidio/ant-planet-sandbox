@@ -31,14 +31,15 @@ begin
   cellFactory.init;
   map.init;
   ants.Init;
-  ants.addNewAndInit(cfg.numAnts, lrOwner);
+  ants.addNewAndInit(cfg.numAnts, map.HiddenCell, lrOwner);
 end;
 
 procedure TSimulation.update;
 begin
   map.update;
   ants.update;
-  ants.solveCollisions( map.canPass );
+  ants.solveCollisions( map.getPassLevel );
+  map.detectAntCellEvents( ants );
 end;
 
 constructor TSimulation.create;

@@ -28,7 +28,9 @@ type
       speed   :single;
       traveled  :single;  //distance traveled
       friction  :single;
-
+      gridPos :TVec2di;
+      isWalkingOver :TCellTypes;
+      cargo :boolean;
       ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove
       procedure setDir( const aNormalizedVec :TVec2d );
       procedure setDirAndNormalize( const unormalizedVec :TVec2d );
@@ -39,7 +41,7 @@ type
   //A list of Ants, procedures and functions most time acts over all ants
   TAntList = TList<PAnt>;
 
-  TCanPassFunc = function( x, y: single):boolean of object;
+  TPassLevelFunc = function( x, y: single):integer of object;
 
   TAntPack = class
     private
@@ -51,10 +53,10 @@ type
       constructor Create;
       destructor Destroy;override;
       procedure Init;
-      procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore );  //create and init a bunch of ants, and add them to the list
+      procedure addNewAndInit( amount:integer; const mapHiddenCell:TVec2di; listRef :TListRef = lrIgnore  );  //create and init a bunch of ants, and add them to the list
       procedure draw;
       procedure update;
-      procedure solveCollisions( canPassFunc:TCanPassFunc );
+      procedure solveCollisions( passLevelFunc: TPassLevelFunc );
       procedure disposeAll;
   end;
 
@@ -98,14 +100,28 @@ begin
     ant := items.list[i];
     x1 := Floor( ant.pos.x );
     y1 := Floor( ant.pos.y );
-    x2 := Floor( ant.pos.x + ant.dir.x * 20 );
-    y2 := Floor( ant.pos.y + ant.dir.y * 20 );
-
-    //SDL_RenderCopy(sdl.rend, img.srcTex, nil, nil);
     sdl.drawSprite(img, x1, y1, ant.rot * 180 / pi);
-  //  sdl.drawSprite(img, x1, y1);
-   { sdl.setColor(255,255,255);
-    SDL_RenderDrawPoint(sdl.rend, x1, y1);}
+    if ant.cargo then
+    begin
+      sdl.setColor(255,255,25);
+      x2 := Floor( ant.pos.x + ant.dir.x * 10 -3 );
+      y2 := Floor( ant.pos.y + ant.dir.y * 10 -3 );
+      sdl.drawRect( x2, y2, 5, 5 );
+    end;
+
+    {$IFDEF DEBUG}
+    if i<cfg.numDebugAnts then
+    begin
+      x2 := Floor( ant.pos.x + ant.dir.x * 40 );
+      y2 := Floor( ant.pos.y + ant.dir.y * 40 );
+      sdl.setColor(255,255,255);
+      SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
+      sdl.drawRect( ant.gridPos.x * cfg.mapCellSize,
+                    ant.gridPos.y * cfg.mapCellSize,
+                    cfg.mapCellSize,
+                    cfg.mapCellSize );
+    end;
+    {$ENDIF}
   end;
 end;
 
@@ -116,7 +132,8 @@ begin
   img.center.y := (img.srcRect.h div 2)+1;
 end;
 
-procedure TAntPack.solveCollisions(canPassFunc: TCanPassFunc);
+{Solve ants collisions, allow or fix movement}
+procedure TAntPack.solveCollisions(passLevelFunc: TPassLevelfunc);
   var
   i: Integer;
   ant :PAnt;
@@ -125,29 +142,33 @@ procedure TAntPack.solveCollisions(canPassFunc: TCanPassFunc);
   idx :integer;
   scanIdx : integer;
   vTest :TVec2d;
+  currLevel :integer;
 begin
   for i := 0 to items.Count-1 do
   begin
     ant := items.List[i];
-    if canPassFunc( ant.wishPos.x, ant.wishPos.y) then
+    {Obstacles are determined by the passLevel integer value
+     ants can walk to same or lower level and can't go to higer level}
+    currLevel := passLevelFunc( ant.pos.x, ant.pos.y );
+    ant.lastPos := ant.pos;
+    if passLevelFunc( ant.wishPos.x, ant.wishPos.y) <= currLevel then
     begin
       ant.pos := ant.wishPos;
     end else
     begin //solve collisions
       //do a radial scan to find best free way to go
       idx := fRadial.getDirIdx(ant.rot);
-      found := false;
       radCount := 0;
       repeat
         inc(radCount);
         scanIdx :=  idx + radCount;
         vTest := ant.pos + (fRadial.getDirByIdx( scanIdx )^) * ant.speed;
-        if canPassFunc( vTest.x, vTest.y) then found:=true
+        if passLevelFunc( vTest.x, vTest.y) <= currLevel then found:=true
           else begin
             //try the other negative side
             scanIdx := idx - radCount;
             vTest := ant.pos + (fRadial.getDirByIdx( scanIdx )^) * ant.speed;
-            found := canPassFunc( vTest.x, vTest.y );
+            found := passLevelFunc( vTest.x, vTest.y) <= currLevel;
           end;
       until found or (radCount > Length(fRadial.dirs));
       if found then
@@ -157,14 +178,13 @@ begin
       end else
       begin
         //it's a Trap!! escape..
-        //TODO: allow move (or teleport ) to closest empty cell;
-
+        //now is very rare to happend since ant can walk same "passLevel"
       end;
     end;
   end;
 end;
 
-procedure TAntPack.addNewAndInit( amount: integer; listRef:TListRef = lrIgnore);
+procedure TAntPack.addNewAndInit( amount: integer;const mapHiddenCell:TVec2di; listRef:TListRef = lrIgnore);
 var
   ant :PAnt;
   i: Integer;
@@ -175,10 +195,15 @@ begin
     new(ant);
     ant.pos.x := random*700;
     ant.pos.y := random*500;
+    {using the hiddenCell force the map to detect first overlappings without special validations}
+    {ants will appear to come always form a different grid cell than the first one. }
+    ant.gridPos := mapHiddenCell;
     ant.speed := cfg.antMaxSpeed * 0.1;
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
     ant.ListRefIdx[listRef] :=  items.add(ant);
+    ant.isWalkingOver := ctGround;
+    ant.cargo := false;
   end;
 end;
 
@@ -190,7 +215,6 @@ begin
   for i:= 0 to items.count-1 do
   begin
     ant := items.list[i];
-    //ant.lastPos :=  ant.pos;
     ant.rotate( random*cfg.antErratic - cfg.antErratic / 2);
     ant.wishPos := ant.pos + ant.dir * ant.speed;
     ant.speed := ant.speed + cfg.antAccel;

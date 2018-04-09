@@ -21,8 +21,9 @@ type
     seen :array[TAntInterests] of Tseen;
   end;
 
+  PMapData = ^TMapData;
   TMapData = record
-    pass :boolean;
+    passLevel :integer;           //they can't pass to a higer level Obstacle
     pheromInfo :TPheromInfo;
     cell :TCell;
   end;
@@ -35,6 +36,7 @@ type
     fMaxY :integer;
     fGround :PSDL_Texture;
     fBlock :PSDL_Texture;
+    fHiddenCell :TVec2di;
   public
     grid  :array of array of TMapData;
     constructor Create;
@@ -43,28 +45,25 @@ type
     procedure finalize;
     procedure update;
     procedure draw;
-    function canPass( x, y : single ):boolean;
+    function getPassLevel( x, y : single ):integer;
     procedure RemoveCell(xg, yg: integer );
     procedure SetCell(xg, yg: integer; cellType:TCellTypes);
+    procedure detectAntCellEvents( ants :TAntPack );
+    function WorldToGrid( vec:TVec2d ):TVec2di;inline;
+    function CheckInGrid( xg, yg :integer ):boolean;inline;
     property W:integer read fW;
     property H:integer read fH;
+    property HiddenCell :TVec2di read fHiddenCell;
   end;
-
-var
-  map :TMap;
 
 implementation
 
 { TMap }
 
-function TMap.canPass(x, y: single): boolean;
-var
-  xg, yg :integer;
+
+function TMap.CheckInGrid(xg, yg: integer): boolean;
 begin
-  xg := floor( x / cfg.mapCellSize );
-  yg := floor( y / cfg.mapCellSize );
-  result := false;
-  if xg>=0  then if xg<W then if yg>=0 then if yg<H then result := grid[xg, yg].pass;
+  result := (xg >= 0)  and (xg < W) and (yg >= 0) and (yg < H)
 end;
 
 constructor TMap.Create;
@@ -74,6 +73,38 @@ end;
 destructor TMap.Destroy;
 begin
 
+end;
+
+procedure TMap.detectAntCellEvents(ants: TAntPack);
+var
+  i :integer;
+  ant :PAnt;
+  newGpos :TVec2di;
+  newGrid, oldGrid :PMapData;
+begin
+  for i := 0 to ants.items.Count-1 do
+  begin
+    ant := ants.items.List[i];
+    newGpos := WorldToGrid( ant.pos );
+    if not (newGpos = ant.gridPos) then
+    begin
+      //ants has jumped from one grid cell to another one, notify them;
+      oldGrid := @grid[ant.gridPos.x, ant.gridPos.y];
+      newGrid := @grid[newGpos.x, newGpos.y];
+      if oldGrid.cell<>nil then oldGrid.cell.endOverlap(ant);
+      if newGrid.cell<>nil  then
+      begin
+        ant.isWalkingOver := newGrid.cell.cellType;
+        newGrid.cell.beginOverlap(ant);
+      end else
+      begin
+        if newGrid.passLevel = CFG_passLevelGround then ant.isWalkingOver := ctGround else ant.isWalkingOver := ctBlock;
+      end;
+
+      //update ant with new gpos
+      ant.gridPos := newGpos;
+    end;
+  end;
 end;
 
 procedure TMap.draw;
@@ -91,8 +122,9 @@ begin
       rect.h := cfg.mapCellSize;
       if grid[i,j].cell=nil then
       begin
-        if grid[i,j].pass then SDL_RenderCopy(sdl.rend, fGround, nil, @rect )
-          else SDL_RenderCopy(sdl.rend, fBlock, nil, @rect );
+        if grid[i,j].passLevel = CFG_passLevelGround
+                then SDL_RenderCopy(sdl.rend, fGround, nil, @rect )
+                else SDL_RenderCopy(sdl.rend, fBlock, nil, @rect );
       end else
       begin
         grid[i,j].cell.draw(rect.x, rect.y);
@@ -115,10 +147,19 @@ begin
           end;
 end;
 
+function TMap.getPassLevel(x, y: single): integer;
+var
+  xg, yg :integer;
+begin
+  xg := floor( x / cfg.mapCellSize );
+  yg := floor( y / cfg.mapCellSize );
+  if (xg >= 0)  and (xg < W) and (yg >= 0) and (yg < H) then result := grid[xg, yg].passLevel
+                                                        else result := CFG_passLevelOut;
+end;
+
 procedure TMap.init;
 var
   i,j :integer;
-  foo :single;
 begin
   //load
   fGround := sdl.loadTexture('images\ground01.png');
@@ -135,12 +176,18 @@ begin
     setLength(grid[i], fH);
     for j := 0 to fH-1 do
     begin
-      grid[i,j].pass := random > 0.06;
-      foo := random*1;
+      if random > 0.06 then grid[i,j].passLevel := CFG_passLevelGround
+                       else grid[i,j].passLevel := CFG_passLevelBlock  ;
       grid[i,j].pheromInfo.seen[ctFood].frameTime := -1;
       grid[i,j].cell := nil;
     end;
   end;
+  //magic hidden Cell ......  O.o
+  setLength(grid[0], fH+1);
+  {The first array will have an aditional item at the end, to avoid some validations, see TAntPack.addNewAndInit }
+  fHiddenCell.x := 0;
+  fHiddenCell.y := fH;
+  grid[0,fH] := Default( TMapData );
 
   SetCell(1, 1, ctCave);
   SetCell(W-2, H-2, ctFood);
@@ -152,7 +199,7 @@ begin
   if (xg>=0) and (xg<W) and (yg>=0) and (yg<H)  then
   with grid[xg,yg] do
   begin
-    pass := true;
+    passLevel := CFG_passLevelGround;
     if cell<>nil then
     begin
       if cell.NeedDestroyWhenRemoved then cell.Free;
@@ -168,7 +215,7 @@ begin
     RemoveCell(xg,yg);
     with grid[xg, yg] do
       case cellType of
-        ctBlock: pass := false;
+        ctBlock: passLevel := CFG_passLevelBlock;
         ctGround:;//nothing needed;
         ctGrass: cell := cellFactory.getGrass;
         ctFood: cell := cellFactory.newFood;
@@ -180,6 +227,12 @@ end;
 procedure TMap.update;
 begin
 
+end;
+
+function TMap.WorldToGrid(vec: TVec2d): TVec2di;
+begin
+  result.x := floor( vec.x / cfg.mapCellSize );
+  result.y := floor( vec.y / cfg.mapCellSize );
 end;
 
 end.
