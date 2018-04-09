@@ -46,8 +46,8 @@ type
       fRadial :TRadial;
     public
       items :TAntList;
-      antOwner :boolean;
       img :TSprite;
+      antOwner :boolean;
       constructor Create;
       destructor Destroy;override;
       procedure Init;
@@ -112,12 +112,19 @@ end;
 procedure TAntPack.Init;
 begin
   img := sdl.newSprite( sdl.loadTexture('images\antWalk_00.png') );
+  img.center.x := img.srcRect.w div 2;
+  img.center.y := (img.srcRect.h div 2)+1;
 end;
 
 procedure TAntPack.solveCollisions(canPassFunc: TCanPassFunc);
   var
   i: Integer;
   ant :PAnt;
+  found :boolean;
+  radCount :integer;
+  idx :integer;
+  scanIdx : integer;
+  vTest :TVec2d;
 begin
   for i := 0 to items.Count-1 do
   begin
@@ -127,7 +134,32 @@ begin
       ant.pos := ant.wishPos;
     end else
     begin //solve collisions
+      //do a radial scan to find best free way to go
+      idx := fRadial.getDirIdx(ant.rot);
+      found := false;
+      radCount := 0;
+      repeat
+        inc(radCount);
+        scanIdx :=  idx + radCount;
+        vTest := ant.pos + (fRadial.getDirByIdx( scanIdx )^) * ant.speed;
+        if canPassFunc( vTest.x, vTest.y) then found:=true
+          else begin
+            //try the other negative side
+            scanIdx := idx - radCount;
+            vTest := ant.pos + (fRadial.getDirByIdx( scanIdx )^) * ant.speed;
+            found := canPassFunc( vTest.x, vTest.y );
+          end;
+      until found or (radCount > Length(fRadial.dirs));
+      if found then
+      begin
+        ant.pos := vTest;
+        ant.setRot( fRadial.IdxToAngle(scanIdx) );
+      end else
+      begin
+        //it's a Trap!! escape..
+        //TODO: allow move (or teleport ) to closest empty cell;
 
+      end;
     end;
   end;
 end;

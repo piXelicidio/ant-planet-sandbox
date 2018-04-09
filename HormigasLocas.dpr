@@ -1,6 +1,7 @@
 program HormigasLocas;
-
+{$IFDEF DEBUG}
 {$APPTYPE CONSOLE}
+{$ENDIF}
 
 {$R *.res}
 
@@ -19,10 +20,5 @@ uses
   u.utils in 'code\u.utils.pas';
 
 begin
-  try
-     mainApp.Start;
-  except
-    on E: Exception do
-      Writeln(E.ClassName, ': ', E.Message);
-  end;
+  mainApp.Start;
 end.

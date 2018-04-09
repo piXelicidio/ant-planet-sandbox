@@ -42,7 +42,8 @@ type
   end;
 
 var
-  cfg         :TSimCfg;
+  cfg           :TSimCfg;
+  simFrameTime  :integer;
 
 implementation
 
@@ -52,7 +53,7 @@ initialization
   begin
     windowW := 1280;
     windowH := 720;
-    numAnts := 1000;
+    numAnts := 300;
     antMaxSpeed := 1.2;
     antErratic := 0.2;
     antAccel := 0.1;
@@ -61,5 +62,6 @@ initialization
     mapH := 10;
     mapCellSize := 64;
   end;
+  simFrameTime := 0;
 finalization
 end.
