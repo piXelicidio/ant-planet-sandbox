@@ -4,7 +4,9 @@ interface
   uses
     u.simcfg,
     u.map,
+    u.cell,
     u.ants;
+
 
 type
   TSimulation = class
@@ -14,6 +16,7 @@ type
       constructor create;
       destructor Destroy;override;
       procedure init;
+      procedure finalize;
       procedure update;
       procedure draw;
   end;
@@ -25,6 +28,7 @@ implementation
 
 procedure TSimulation.init;
 begin
+  cellFactory.init;
   map.init;
   ants.Init;
   ants.addNewAndInit(cfg.numAnts, lrOwner);
@@ -55,6 +59,12 @@ procedure TSimulation.draw;
 begin
   map.draw;
   ants.draw;
+end;
+
+procedure TSimulation.finalize;
+begin
+  map.finalize;
+  cellFactory.finalize;
 end;
 
 initialization

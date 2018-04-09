@@ -47,10 +47,6 @@ var
 begin
   result := round( angle / step ) mod length(dirs);
   if result< 0 then result := length(dirs) + result;
-  if (result<0) or (result>(high(dirs))) then
-  begin
-    writeln('cascara');
-  end;
 end;
 
 function TRadial.IdxToAngle(idx: integer): single;

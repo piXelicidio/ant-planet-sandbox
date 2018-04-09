@@ -31,7 +31,7 @@ end;
 
 procedure TMainApp.Finalize;
 begin
-
+  sim.finalize;
 end;
 
 procedure TMainApp.load;

@@ -46,8 +46,8 @@ type
       fRadial :TRadial;
     public
       items :TAntList;
-      antOwner :boolean;
       img :TSprite;
+      antOwner :boolean;
       constructor Create;
       destructor Destroy;override;
       procedure Init;
@@ -112,6 +112,8 @@ end;
 procedure TAntPack.Init;
 begin
   img := sdl.newSprite( sdl.loadTexture('images\antWalk_00.png') );
+  img.center.x := img.srcRect.w div 2;
+  img.center.y := (img.srcRect.h div 2)+1;
 end;
 
 procedure TAntPack.solveCollisions(canPassFunc: TCanPassFunc);
