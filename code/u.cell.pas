@@ -5,9 +5,7 @@ interface
     u.simcfg, u.ants, px.sdl,  sdl2;
 
 type
-  TCellTypes = (ctFood, ctCave, ctGrass, ctBlock, ctGround); //ctBlock and ctGround don't need class
-  //add more ant interests between ctFood and ctCave;
-  TAntInterests = ctFood..ctCave;
+
 
   CCell = class of TCell;
   TCell = class
@@ -18,8 +16,9 @@ type
       fNeedDestroyWhenRemoved :boolean;
     public
       constructor create;
-      procedure affectAnt(const ant :TAnt );virtual;abstract;
-      procedure draw(x,y:integer);virtual;
+      procedure beginOverlap( ant :PAnt );virtual;
+      procedure endOverlap( ant :PAnt );virtual;
+      procedure draw( x, y:integer );virtual;
       property NeedDestroyWhenRemoved:boolean read fNeedDestroyWhenRemoved;
       property DrawOverlay:boolean read fDrawOverlay;
       property cellType :TCellTypes read fCellType;
@@ -27,26 +26,22 @@ type
 
   TGrass = class(TCell)
    public
-    procedure affectAnt(const ant :TAnt );override;
   end;
 
-  TInterestingCell = class(TCell)
-    private
-    public
-  end;
-
-  TCave = class(TInterestingCell)
+  TCave = class(TCell)
     private
     public
       constructor create;
-      procedure affectAnt(const ant :TAnt);override;
+      procedure beginOverlap( ant :PAnt);override;
+      procedure endOverlap( ant :PAnt);override;
   end;
 
-  TFood = class(TInterestingCell)
+  TFood = class(TCell)
     private
     public
       constructor create;
-      procedure affectAnt(const ant :TAnt);override;
+      procedure beginOverlap( ant :PAnt );override;
+      procedure endOverlap( ant : PAnt );override;
   end;
 
   TCellFactory = class
@@ -72,16 +67,13 @@ implementation
 
 { TGrassCell }
 
-procedure TGrass.AffectAnt(const ant: TAnt);
-begin
-
-end;
 
 { TFood }
 
-procedure TFood.AffectAnt(const ant: TAnt);
-begin
 
+procedure TFood.beginOverlap(ant: PAnt);
+begin
+  ant.cargo := true;
 end;
 
 constructor TFood.create;
@@ -89,11 +81,17 @@ begin
   fCellType := ctFood;
 end;
 
-{ TCave }
-
-procedure TCave.AffectAnt(const ant: TAnt);
+procedure TFood.endOverlap(ant: PAnt);
 begin
 
+end;
+
+{ TCave }
+
+
+procedure TCave.beginOverlap(ant: PAnt);
+begin
+  ant.cargo := false;
 end;
 
 constructor TCave.create;
@@ -101,7 +99,18 @@ begin
   fCellType := ctCave;
 end;
 
+procedure TCave.endOverlap(ant: PAnt);
+begin
+  inherited;
+
+end;
+
 { TCell }
+
+procedure TCell.beginOverlap(ant: PAnt);
+begin
+
+end;
 
 constructor TCell.create;
 begin
@@ -111,6 +120,11 @@ end;
 procedure TCell.draw;
 begin
   sdl.drawSprite(fImg^ , x,y);
+end;
+
+procedure TCell.endOverlap(ant: PAnt);
+begin
+
 end;
 
 { TCellFactory }

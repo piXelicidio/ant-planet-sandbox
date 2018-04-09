@@ -21,6 +21,7 @@ type
     seen :array[TAntInterests] of Tseen;
   end;
 
+  PMapData = ^TMapData;
   TMapData = record
     passLevel :integer;           //they can't pass to a higer level Obstacle
     pheromInfo :TPheromInfo;
@@ -35,6 +36,7 @@ type
     fMaxY :integer;
     fGround :PSDL_Texture;
     fBlock :PSDL_Texture;
+    fHiddenCell :TVec2di;
   public
     grid  :array of array of TMapData;
     constructor Create;
@@ -51,6 +53,7 @@ type
     function CheckInGrid( xg, yg :integer ):boolean;inline;
     property W:integer read fW;
     property H:integer read fH;
+    property HiddenCell :TVec2di read fHiddenCell;
   end;
 
 implementation
@@ -76,11 +79,31 @@ procedure TMap.detectAntCellEvents(ants: TAntPack);
 var
   i :integer;
   ant :PAnt;
+  newGpos :TVec2di;
+  newGrid, oldGrid :PMapData;
 begin
-  for i := 0 to ants.items.Count do
+  for i := 0 to ants.items.Count-1 do
   begin
     ant := ants.items.List[i];
+    newGpos := WorldToGrid( ant.pos );
+    if not (newGpos = ant.gridPos) then
+    begin
+      //ants has jumped from one grid cell to another one, notify them;
+      oldGrid := @grid[ant.gridPos.x, ant.gridPos.y];
+      newGrid := @grid[newGpos.x, newGpos.y];
+      if oldGrid.cell<>nil then oldGrid.cell.endOverlap(ant);
+      if newGrid.cell<>nil  then
+      begin
+        ant.isWalkingOver := newGrid.cell.cellType;
+        newGrid.cell.beginOverlap(ant);
+      end else
+      begin
+        if newGrid.passLevel = CFG_passLevelGround then ant.isWalkingOver := ctGround else ant.isWalkingOver := ctBlock;
+      end;
 
+      //update ant with new gpos
+      ant.gridPos := newGpos;
+    end;
   end;
 end;
 
@@ -137,7 +160,6 @@ end;
 procedure TMap.init;
 var
   i,j :integer;
-  foo :single;
 begin
   //load
   fGround := sdl.loadTexture('images\ground01.png');
@@ -160,6 +182,12 @@ begin
       grid[i,j].cell := nil;
     end;
   end;
+  //magic hidden Cell ......  O.o
+  setLength(grid[0], fH+1);
+  {The first array will have an aditional item at the end, to avoid some validations, see TAntPack.addNewAndInit }
+  fHiddenCell.x := 0;
+  fHiddenCell.y := fH;
+  grid[0,fH] := Default( TMapData );
 
   SetCell(1, 1, ctCave);
   SetCell(W-2, H-2, ctFood);

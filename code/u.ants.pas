@@ -29,6 +29,8 @@ type
       traveled  :single;  //distance traveled
       friction  :single;
       gridPos :TVec2di;
+      isWalkingOver :TCellTypes;
+      cargo :boolean;
       ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove
       procedure setDir( const aNormalizedVec :TVec2d );
       procedure setDirAndNormalize( const unormalizedVec :TVec2d );
@@ -51,7 +53,7 @@ type
       constructor Create;
       destructor Destroy;override;
       procedure Init;
-      procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore );  //create and init a bunch of ants, and add them to the list
+      procedure addNewAndInit( amount:integer; const mapHiddenCell:TVec2di; listRef :TListRef = lrIgnore  );  //create and init a bunch of ants, and add them to the list
       procedure draw;
       procedure update;
       procedure solveCollisions( passLevelFunc: TPassLevelFunc );
@@ -98,14 +100,28 @@ begin
     ant := items.list[i];
     x1 := Floor( ant.pos.x );
     y1 := Floor( ant.pos.y );
-    x2 := Floor( ant.pos.x + ant.dir.x * 20 );
-    y2 := Floor( ant.pos.y + ant.dir.y * 20 );
-
-    //SDL_RenderCopy(sdl.rend, img.srcTex, nil, nil);
     sdl.drawSprite(img, x1, y1, ant.rot * 180 / pi);
-  //  sdl.drawSprite(img, x1, y1);
-   { sdl.setColor(255,255,255);
-    SDL_RenderDrawPoint(sdl.rend, x1, y1);}
+    if ant.cargo then
+    begin
+      sdl.setColor(255,255,25);
+      x2 := Floor( ant.pos.x + ant.dir.x * 10 -3 );
+      y2 := Floor( ant.pos.y + ant.dir.y * 10 -3 );
+      sdl.drawRect( x2, y2, 5, 5 );
+    end;
+
+    {$IFDEF DEBUG}
+    if i<cfg.numDebugAnts then
+    begin
+      x2 := Floor( ant.pos.x + ant.dir.x * 40 );
+      y2 := Floor( ant.pos.y + ant.dir.y * 40 );
+      sdl.setColor(255,255,255);
+      SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
+      sdl.drawRect( ant.gridPos.x * cfg.mapCellSize,
+                    ant.gridPos.y * cfg.mapCellSize,
+                    cfg.mapCellSize,
+                    cfg.mapCellSize );
+    end;
+    {$ENDIF}
   end;
 end;
 
@@ -168,7 +184,7 @@ begin
   end;
 end;
 
-procedure TAntPack.addNewAndInit( amount: integer; listRef:TListRef = lrIgnore);
+procedure TAntPack.addNewAndInit( amount: integer;const mapHiddenCell:TVec2di; listRef:TListRef = lrIgnore);
 var
   ant :PAnt;
   i: Integer;
@@ -179,12 +195,15 @@ begin
     new(ant);
     ant.pos.x := random*700;
     ant.pos.y := random*500;
-    ant.gridPos.x := -1;
-    ant.gridPos.y := -1;
+    {using the hiddenCell force the map to detect first overlappings without special validations}
+    {ants will appear to come always form a different grid cell than the first one. }
+    ant.gridPos := mapHiddenCell;
     ant.speed := cfg.antMaxSpeed * 0.1;
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
     ant.ListRefIdx[listRef] :=  items.add(ant);
+    ant.isWalkingOver := ctGround;
+    ant.cargo := false;
   end;
 end;
 

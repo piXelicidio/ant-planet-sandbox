@@ -31,7 +31,7 @@ begin
   cellFactory.init;
   map.init;
   ants.Init;
-  ants.addNewAndInit(cfg.numAnts, lrOwner);
+  ants.addNewAndInit(cfg.numAnts, map.HiddenCell, lrOwner);
 end;
 
 procedure TSimulation.update;
