@@ -48,6 +48,7 @@ type
     mapH  :integer;
     mapCellSize :integer;
     debugPheromones :boolean;
+    antLogicFrameSkip :integer;
   end;
 
 var
@@ -62,16 +63,17 @@ initialization
   begin
     windowW := 1280;
     windowH := 720;
-    numAnts := 300;
+    numAnts := 2000;
     numDebugAnts := 3;
     antMaxSpeed := 1.2;
     antErratic := 0.2;
     antAccel := 0.1;
     antRadialScanNum := 16;
-    mapW := 18;
-    mapH := 10;
+    antLogicFrameSkip := 3;   //a max random value to skip ants from checking the pheromones path algorithm
+    mapW := 20;
+    mapH := 12;
     mapCellSize := 64;
-    debugPheromones := true;
+    debugPheromones := false;
   end;
 
   frameTimer := TFrameTimer.create;

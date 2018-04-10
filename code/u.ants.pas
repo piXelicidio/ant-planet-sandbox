@@ -67,7 +67,7 @@ type
       constructor Create;
       destructor Destroy;override;
       procedure Init;
-      procedure addNewAndInit( amount:integer; const mapHiddenCell:TVec2di; listRef :TListRef = lrIgnore  );  //create and init a bunch of ants, and add them to the list
+      procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore  );  //create and init a bunch of ants, and add them to the list
       procedure draw;
       procedure update;
       procedure solveCollisions( passLevelFunc: TPassLevelFunc );
@@ -204,7 +204,7 @@ begin
   end;
 end;
 
-procedure TAntPack.addNewAndInit( amount: integer;const mapHiddenCell:TVec2di; listRef:TListRef = lrIgnore);
+procedure TAntPack.addNewAndInit( amount: integer; listRef:TListRef = lrIgnore);
 var
   ant :PAnt;
   i, p: Integer;
@@ -214,11 +214,12 @@ begin
   for i := 0 to amount-1 do
   begin
     new(ant);
-    ant.pos.x := random*700;
-    ant.pos.y := random*500;
+    ant.pos.x :=100+ random*400;
+    ant.pos.y :=100+ random*300;
     {using the hiddenCell force the map to detect first overlappings without special validations}
     {ants will appear to come always form a different grid cell than the first one. }
-    ant.gridPos := mapHiddenCell;
+    ant.gridPos.X := 0;
+    ant.gridPos.y := 0;
     ant.speed := cfg.antMaxSpeed * 0.1;
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
@@ -268,8 +269,9 @@ begin
   if len>0 then
   begin
     //normalizing in place
-    dir.x := delta.x / len;
-    dir.y := delta.y / len;
+    delta.x := delta.x / len;
+    delta.y := delta.y / len;
+    setDir( delta );
   end;
   //ant.lastTimeUpdatePath = frameTimer.time   ?? from lua ants
 end;
@@ -334,7 +336,7 @@ end;
 
 procedure TAnt.updateRot;
 begin
-    if dir.y>0 then rot := arcCos( dir.y ) else rot := pi*2 - arcCos( dir.y );
+    if dir.y>0 then rot := arcCos( dir.x ) else rot := pi*2 - arcCos( dir.x );
 end;
 
 end.

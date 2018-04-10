@@ -38,7 +38,6 @@ type
     fMaxY :integer;
     fGround :PSDL_Texture;
     fBlock :PSDL_Texture;
-    fHiddenCell :TVec2di;
   public
     grid  :array of array of TMapData;
     constructor Create;
@@ -55,7 +54,6 @@ type
     function CheckInGrid( xg, yg :integer ):boolean;inline;
     property W:integer read fW;
     property H:integer read fH;
-    property HiddenCell :TVec2di read fHiddenCell;
   end;
 
 implementation
@@ -205,6 +203,11 @@ begin
       if random > 0.06 then grid[i,j].passLevel := CFG_passLevelGround
                        else grid[i,j].passLevel := CFG_passLevelBlock  ;
 
+      //borders obligatory
+      if (i = 0) or (i = fW-1) or (j=0) or (j = fH-1) then grid[i,j].passLevel := CFG_passLevelOut;
+      
+
+
       for interest := low(TAntInterests) to high(TAntInterests) do
       begin
         with grid[i,j] do
@@ -218,13 +221,15 @@ begin
       grid[i,j].cell := nil;
     end;
   end;
-  //magic hidden Cell ......  O.o
-  setLength(grid[0], fH+1);
+
+  //magic hidden Cell ......  O.o  NO LONGER NEEDED
+//  setLength(grid[0], fH+1);
   {The first array will have an aditional item at the end, to avoid some validations, see TAntPack.addNewAndInit }
+  {
   fHiddenCell.x := 0;
   fHiddenCell.y := fH;
   grid[0,fH] := Default( TMapData );
-
+  }
   SetCell(1, 1, ctCave);
   SetCell(W-2, H-2, ctFood);
 end;

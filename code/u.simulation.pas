@@ -32,7 +32,7 @@ begin
   cellFactory.init;
   map.init;
   ants.Init;
-  ants.addNewAndInit(cfg.numAnts, map.HiddenCell, lrOwner);
+  ants.addNewAndInit(cfg.numAnts, lrOwner);
 end;
 
 procedure TSimulation.phero_algorithm;
@@ -51,7 +51,7 @@ begin
     currGrid := @map.grid[ ant.gridPos.x, ant.gridPos.y ];
 
     //scan neibour grids for best pheromoes info
-    for scan := 0 to 0 {High(CFG_GridScan)} do
+    for scan := 0 to High(CFG_GridScan) do
     begin
       pheromInfo := @map.grid[ ant.gridPos.x + CFG_GridScan[scan].x, ant.gridPos.y + CFG_GridScan[scan].x ].pheromInfo;
       myInterestSeen := @pheromInfo.seen[ ant.lookingFor ];
