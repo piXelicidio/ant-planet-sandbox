@@ -47,6 +47,9 @@ type
       procedure setDirAndNormalize( const unormalizedVec :TVec2d );
       procedure setRot( rad :single );
       procedure rotate( rad :single );
+      procedure headTo(const targetPos :TVec2d );
+      procedure taskFound( interest :TAntInterests );
+      property direction:TVec2d read dir;
   end;
 
   //A list of Ants, procedures and functions most time acts over all ants
@@ -232,7 +235,8 @@ begin
     begin
       ant.LastTimeSeen[interest] := -1;
     end;
-
+    ant.lookingFor := ctFood;
+    ant.comingFrom := ctCave;
   end;
 end;
 
@@ -253,6 +257,22 @@ begin
 end;
 
 { TAnt }
+
+procedure TAnt.headTo(const targetPos: TVec2d);
+var
+  delta :TVec2d;
+  len :single;
+begin
+  delta := targetPos - pos;
+  len := delta.len;
+  if len>0 then
+  begin
+    //normalizing in place
+    dir.x := delta.x / len;
+    dir.y := delta.y / len;
+  end;
+  //ant.lastTimeUpdatePath = frameTimer.time   ?? from lua ants
+end;
 
 procedure TAnt.resetPositionMemory(const vec: TVec2d);
 var
@@ -294,6 +314,17 @@ begin
   inc(oldestPositionIndex);
   if oldestPositionIndex > high(PastPositions) then oldestPositionIndex := 0;
   oldestPositionStored := @PastPositions[ oldestPositionIndex ];
+end;
+
+procedure TAnt.taskFound(interest: TAntInterests);
+var
+  temp :TAntInterests;
+begin
+    temp := lookingFor;
+    lookingFor := comingFrom;
+    comingFrom := temp;
+    speed := 0;
+    setDir( -dir);
 end;
 
 procedure TAnt.updateDir;

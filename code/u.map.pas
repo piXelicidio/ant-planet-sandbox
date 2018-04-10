@@ -12,11 +12,13 @@ uses
       u.cell;
 
 type
+  PSeen = ^TSeen;
   TSeen = record
     frameTime :integer;
     where :TVec2d;
   end;
 
+  PPheromInfo = ^TPheromInfo;
   TPheromInfo = record
     seen :array[TAntInterests] of Tseen;
   end;

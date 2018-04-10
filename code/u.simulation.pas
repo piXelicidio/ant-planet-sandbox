@@ -40,13 +40,29 @@ var
   i :integer;
   ant :PAnt;
   interest :TAntInterests;
+  myInterestSeen :PSeen;
   currGrid :PMapData;
+  pheromInfo :PPheromInfo;
+  scan: Integer;
 begin
   for i := 0 to ants.items.Count-1 do
   begin
-    //update pheromone info in map;
     ant := ants.items.List[i];
     currGrid := @map.grid[ ant.gridPos.x, ant.gridPos.y ];
+
+    //scan neibour grids for best pheromoes info
+    for scan := 0 to 0 {High(CFG_GridScan)} do
+    begin
+      pheromInfo := @map.grid[ ant.gridPos.x + CFG_GridScan[scan].x, ant.gridPos.y + CFG_GridScan[scan].x ].pheromInfo;
+      myInterestSeen := @pheromInfo.seen[ ant.lookingFor ];
+      if myInterestSeen.frameTime > ant.maxTimeSeen_MyTarget then
+      begin
+        ant.maxTimeSeen_MyTarget := myInterestSeen.frameTime;
+        ant.headTo( myInterestSeen.where);
+      end;
+    end;
+
+    //update pheromone info in map;
     for interest := Low(TAntInterests) to High(TAntInterests) do
     begin
       if currGrid.pheromInfo.seen[ interest ].frameTime < ant.LastTimeSeen[ interest ] then
