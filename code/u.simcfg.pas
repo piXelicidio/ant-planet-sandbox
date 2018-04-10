@@ -2,7 +2,7 @@ unit u.simcfg;
 //defaults, globals, types (fight against hardcoding)...
 interface
 
-uses px.vec2d;
+uses px.vec2d, u.frameTimer;
 
 const
   CFG_MaxScanDirs = 8; //Max Index of scan directions of cell neibors..
@@ -30,6 +30,8 @@ const
   CFG_passLevelBlock = 1;
   CFG_passLevelOut = high(integer);
 
+  CFG_antPositionMemorySize = 15;
+
 type
 
   PSimCfg = ^TSimCfg;
@@ -45,11 +47,13 @@ type
     mapW  :integer;
     mapH  :integer;
     mapCellSize :integer;
+    debugPheromones :boolean;
+    antLogicFrameSkip :integer;
   end;
 
 var
   cfg           :TSimCfg;
-  simFrameTime  :integer;
+  frameTimer    :TFrameTimer;
 
 implementation
 
@@ -59,16 +63,20 @@ initialization
   begin
     windowW := 1280;
     windowH := 720;
-    numAnts := 300;
+    numAnts := 20000;
     numDebugAnts := 3;
     antMaxSpeed := 1.2;
     antErratic := 0.2;
     antAccel := 0.1;
     antRadialScanNum := 16;
-    mapW := 18;
-    mapH := 10;
+    antLogicFrameSkip := 0;   //a max random value to skip ants from checking the pheromones path algorithm
+    mapW := 20;
+    mapH := 12;
     mapCellSize := 64;
+    debugPheromones := false;
   end;
-  simFrameTime := 0;
+
+  frameTimer := TFrameTimer.create;
 finalization
+  frameTimer.Free;
 end.

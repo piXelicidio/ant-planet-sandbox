@@ -19,8 +19,12 @@ type
     private
       dir   : TVec2d;  //direction to go
       rot   : single;  //rotation equivalent to current direciton;
+      PastPositions :array[0..CFG_antPositionMemorySize-1] of TVec2d;
+      oldestPositionIndex :integer;
       procedure updateRot;
       procedure updateDir;
+      procedure storePosition(const vec :TVec2d );
+      procedure resetPositionMemory(const vec :TVec2d );
     public
       pos :TVec2d;  //position
       wishPos :TVec2d; //next position it wants to go, map has final word
@@ -31,11 +35,21 @@ type
       gridPos :TVec2di;
       isWalkingOver :TCellTypes;
       cargo :boolean;
+
+      LastTimeSeen :array[TAntInterests] of integer;
+      maxTimeSeen_MyTarget :integer;
+      lookingFor :TAntInterests;
+      comingFrom :TAntInterests;
+      oldestPositionStored :PVec2D;
+
       ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove
       procedure setDir( const aNormalizedVec :TVec2d );
       procedure setDirAndNormalize( const unormalizedVec :TVec2d );
       procedure setRot( rad :single );
       procedure rotate( rad :single );
+      procedure headTo(const targetPos :TVec2d );
+      procedure taskFound( interest :TAntInterests );
+      property direction:TVec2d read dir;
   end;
 
   //A list of Ants, procedures and functions most time acts over all ants
@@ -53,7 +67,7 @@ type
       constructor Create;
       destructor Destroy;override;
       procedure Init;
-      procedure addNewAndInit( amount:integer; const mapHiddenCell:TVec2di; listRef :TListRef = lrIgnore  );  //create and init a bunch of ants, and add them to the list
+      procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore  );  //create and init a bunch of ants, and add them to the list
       procedure draw;
       procedure update;
       procedure solveCollisions( passLevelFunc: TPassLevelFunc );
@@ -115,11 +129,17 @@ begin
       x2 := Floor( ant.pos.x + ant.dir.x * 40 );
       y2 := Floor( ant.pos.y + ant.dir.y * 40 );
       sdl.setColor(255,255,255);
+      // direction
       SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
       sdl.drawRect( ant.gridPos.x * cfg.mapCellSize,
                     ant.gridPos.y * cfg.mapCellSize,
                     cfg.mapCellSize,
                     cfg.mapCellSize );
+      // oldestPosition remembered;
+      sdl.setColor(25,25,255);
+      x2 := Floor( ant.oldestPositionStored.x );
+      y2 := Floor( ant.oldestPositionStored.y );
+      sdl.drawRect(x2,y2, 2,2);
     end;
     {$ENDIF}
   end;
@@ -184,26 +204,40 @@ begin
   end;
 end;
 
-procedure TAntPack.addNewAndInit( amount: integer;const mapHiddenCell:TVec2di; listRef:TListRef = lrIgnore);
+procedure TAntPack.addNewAndInit( amount: integer; listRef:TListRef = lrIgnore);
 var
   ant :PAnt;
-  i: Integer;
+  i, p: Integer;
+  interest:TAntInterests;
 begin
   fRadial.Init(cfg.antRadialScanNum);
   for i := 0 to amount-1 do
   begin
     new(ant);
-    ant.pos.x := random*700;
-    ant.pos.y := random*500;
+    ant.pos.x :=100+ random*400;
+    ant.pos.y :=100+ random*300;
     {using the hiddenCell force the map to detect first overlappings without special validations}
     {ants will appear to come always form a different grid cell than the first one. }
-    ant.gridPos := mapHiddenCell;
+    ant.gridPos.X := 0;
+    ant.gridPos.y := 0;
     ant.speed := cfg.antMaxSpeed * 0.1;
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
     ant.ListRefIdx[listRef] :=  items.add(ant);
     ant.isWalkingOver := ctGround;
     ant.cargo := false;
+    for p := 0 to high(ant.pastPositions) do
+    begin
+      ant.PastPositions[p] :=  ant.pos;
+    end;
+    ant.oldestPositionIndex := 0;
+    ant.oldestPositionStored := @ant.PastPositions[0];
+    for interest := Low(TAntInterests) to High(TantInterests) do
+    begin
+      ant.LastTimeSeen[interest] := -1;
+    end;
+    ant.lookingFor := ctFood;
+    ant.comingFrom := ctCave;
   end;
 end;
 
@@ -215,6 +249,7 @@ begin
   for i:= 0 to items.count-1 do
   begin
     ant := items.list[i];
+    ant.storePosition(ant.pos);
     ant.rotate( random*cfg.antErratic - cfg.antErratic / 2);
     ant.wishPos := ant.pos + ant.dir * ant.speed;
     ant.speed := ant.speed + cfg.antAccel;
@@ -223,6 +258,30 @@ begin
 end;
 
 { TAnt }
+
+procedure TAnt.headTo(const targetPos: TVec2d);
+var
+  delta :TVec2d;
+  len :single;
+begin
+  delta := targetPos - pos;
+  len := delta.len;
+  if len>0 then
+  begin
+    //normalizing in place
+    delta.x := delta.x / len;
+    delta.y := delta.y / len;
+    setDir( delta );
+  end;
+  //ant.lastTimeUpdatePath = frameTimer.time   ?? from lua ants
+end;
+
+procedure TAnt.resetPositionMemory(const vec: TVec2d);
+var
+  i: Integer;
+begin
+  for i := 0 to High(pastPositions) do PastPositions[i] := vec;
+end;
 
 procedure TAnt.rotate(rad: single);
 begin
@@ -251,6 +310,25 @@ begin
   updateDir;
 end;
 
+procedure TAnt.storePosition(const vec: TVec2d);
+begin
+  PastPositions[ oldestPositionIndex ] := pos;
+  inc(oldestPositionIndex);
+  if oldestPositionIndex > high(PastPositions) then oldestPositionIndex := 0;
+  oldestPositionStored := @PastPositions[ oldestPositionIndex ];
+end;
+
+procedure TAnt.taskFound(interest: TAntInterests);
+var
+  temp :TAntInterests;
+begin
+    temp := lookingFor;
+    lookingFor := comingFrom;
+    comingFrom := temp;
+    speed := 0;
+    setDir( -dir);
+end;
+
 procedure TAnt.updateDir;
 begin
   dir := vecDir( rot );
@@ -258,7 +336,8 @@ end;
 
 procedure TAnt.updateRot;
 begin
-    if dir.y>0 then rot := arcCos( dir.y ) else rot := pi*2 - arcCos( dir.y );
+    if dir.x<-1 then dir.x := -1 else if dir.x>1 then dir.x:=1; //some rare cases to avoid
+    if dir.y>0 then rot := arcCos( dir.x ) else rot := pi*2 - arcCos( dir.x );
 end;
 
 end.

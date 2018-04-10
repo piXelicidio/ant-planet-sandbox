@@ -72,8 +72,16 @@ implementation
 
 
 procedure TFood.beginOverlap(ant: PAnt);
+
 begin
-  ant.cargo := true;
+  inherited;
+  if ant.lookingFor = ctFood then
+  begin
+    ant.cargo := true;
+    ant.maxTimeSeen_MyTarget := 0;
+    //swap tasks;
+    ant.taskFound( ctFood );
+  end;
 end;
 
 constructor TFood.create;
@@ -83,7 +91,7 @@ end;
 
 procedure TFood.endOverlap(ant: PAnt);
 begin
-
+  inherited;
 end;
 
 { TCave }
@@ -91,7 +99,15 @@ end;
 
 procedure TCave.beginOverlap(ant: PAnt);
 begin
-  ant.cargo := false;
+  inherited;
+  if ant.lookingFor = ctCave then
+  begin
+    ant.cargo := false;
+    ant.maxTimeSeen_MyTarget := 0;
+    //swap tasks;
+    ant.taskFound( ctCave );
+  end;
+
 end;
 
 constructor TCave.create;
@@ -124,7 +140,12 @@ end;
 
 procedure TCell.endOverlap(ant: PAnt);
 begin
-
+  //check if this is interesting for ants:
+  if fCellType <= high(TAntInterests) then
+  begin
+    //tell ant: you have seen this
+    ant.LastTimeSeen[fCellType] := frameTimer.time;
+  end;
 end;
 
 { TCellFactory }
