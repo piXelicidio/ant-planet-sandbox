@@ -159,7 +159,8 @@ end;
 
 procedure TMap.init;
 var
-  i,j :integer;
+  i,j  :integer;
+  f :TCellTypes;
 begin
   //load
   fGround := sdl.loadTexture('images\ground01.png');
@@ -178,7 +179,17 @@ begin
     begin
       if random > 0.06 then grid[i,j].passLevel := CFG_passLevelGround
                        else grid[i,j].passLevel := CFG_passLevelBlock  ;
-      grid[i,j].pheromInfo.seen[ctFood].frameTime := -1;
+
+      for f := low(TAntInterests) to high(TAntInterests) do
+      begin
+        with grid[i,j] do
+        begin
+          pheromInfo.seen[ f ].frameTime := -1;
+          pheromInfo.seen[ f ].where := vec(0,0);
+        end;
+      end;
+
+      //grid[i,j].pheromInfo.seen[ctFood].frameTime := -1;
       grid[i,j].cell := nil;
     end;
   end;

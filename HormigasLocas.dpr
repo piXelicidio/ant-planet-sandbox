@@ -17,7 +17,8 @@ uses
   u.camview in 'code\u.camview.pas',
   u.MainApp in 'u.MainApp.pas',
   u.simcfg in 'code\u.simcfg.pas',
-  u.utils in 'code\u.utils.pas';
+  u.utils in 'code\u.utils.pas',
+  u.frametimer in 'code\u.frametimer.pas';
 
 begin
   mainApp.Start;

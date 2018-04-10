@@ -2,7 +2,7 @@ unit u.simcfg;
 //defaults, globals, types (fight against hardcoding)...
 interface
 
-uses px.vec2d;
+uses px.vec2d, u.frameTimer;
 
 const
   CFG_MaxScanDirs = 8; //Max Index of scan directions of cell neibors..
@@ -30,6 +30,8 @@ const
   CFG_passLevelBlock = 1;
   CFG_passLevelOut = high(integer);
 
+  CFG_antPositionMemorySize = 15;
+
 type
 
   PSimCfg = ^TSimCfg;
@@ -49,7 +51,7 @@ type
 
 var
   cfg           :TSimCfg;
-  simFrameTime  :integer;
+  frameTimer    :TFrameTimer;
 
 implementation
 
@@ -69,6 +71,8 @@ initialization
     mapH := 10;
     mapCellSize := 64;
   end;
-  simFrameTime := 0;
+
+  frameTimer := TFrameTimer.create;
 finalization
+  frameTimer.Free;
 end.

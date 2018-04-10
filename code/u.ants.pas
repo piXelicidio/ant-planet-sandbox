@@ -19,8 +19,13 @@ type
     private
       dir   : TVec2d;  //direction to go
       rot   : single;  //rotation equivalent to current direciton;
+      PastPositions :array[0..CFG_antPositionMemorySize-1] of TVec2d;
+      oldestPositionIndex :integer;
+      oldestPositionStored :PVec2D;
       procedure updateRot;
       procedure updateDir;
+      procedure storePosition(const vec :TVec2d );
+      procedure resetPositionMemory(const vec :TVec2d );
     public
       pos :TVec2d;  //position
       wishPos :TVec2d; //next position it wants to go, map has final word
@@ -115,11 +120,17 @@ begin
       x2 := Floor( ant.pos.x + ant.dir.x * 40 );
       y2 := Floor( ant.pos.y + ant.dir.y * 40 );
       sdl.setColor(255,255,255);
+      // direction
       SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
       sdl.drawRect( ant.gridPos.x * cfg.mapCellSize,
                     ant.gridPos.y * cfg.mapCellSize,
                     cfg.mapCellSize,
                     cfg.mapCellSize );
+      // oldestPosition remembered;
+      sdl.setColor(25,25,255);
+      x2 := Floor( ant.oldestPositionStored.x );
+      y2 := Floor( ant.oldestPositionStored.y );
+      sdl.drawRect(x2,y2, 2,2);
     end;
     {$ENDIF}
   end;
@@ -187,7 +198,7 @@ end;
 procedure TAntPack.addNewAndInit( amount: integer;const mapHiddenCell:TVec2di; listRef:TListRef = lrIgnore);
 var
   ant :PAnt;
-  i: Integer;
+  i, p: Integer;
 begin
   fRadial.Init(cfg.antRadialScanNum);
   for i := 0 to amount-1 do
@@ -204,6 +215,13 @@ begin
     ant.ListRefIdx[listRef] :=  items.add(ant);
     ant.isWalkingOver := ctGround;
     ant.cargo := false;
+    for p := 0 to high(ant.pastPositions) do
+    begin
+      ant.PastPositions[p] :=  ant.pos;
+    end;
+    ant.oldestPositionIndex := 0;
+    ant.oldestPositionStored := @ant.PastPositions[0];
+
   end;
 end;
 
@@ -215,6 +233,7 @@ begin
   for i:= 0 to items.count-1 do
   begin
     ant := items.list[i];
+    ant.storePosition(ant.pos);
     ant.rotate( random*cfg.antErratic - cfg.antErratic / 2);
     ant.wishPos := ant.pos + ant.dir * ant.speed;
     ant.speed := ant.speed + cfg.antAccel;
@@ -223,6 +242,13 @@ begin
 end;
 
 { TAnt }
+
+procedure TAnt.resetPositionMemory(const vec: TVec2d);
+var
+  i: Integer;
+begin
+  for i := 0 to High(pastPositions) do PastPositions[i] := vec;
+end;
 
 procedure TAnt.rotate(rad: single);
 begin
@@ -249,6 +275,14 @@ begin
   rot := rad;
   //update dirs
   updateDir;
+end;
+
+procedure TAnt.storePosition(const vec: TVec2d);
+begin
+  PastPositions[ oldestPositionIndex ] := pos;
+  inc(oldestPositionIndex);
+  if oldestPositionIndex > high(PastPositions) then oldestPositionIndex := 0;
+  oldestPositionStored := @PastPositions[ oldestPositionIndex ];
 end;
 
 procedure TAnt.updateDir;

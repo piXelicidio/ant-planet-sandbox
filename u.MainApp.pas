@@ -1,7 +1,14 @@
 unit u.MainApp;
 
 interface
-  uses sdl2, px.sdl, u.simulation, u.simcfg, u.map, u.ants;
+  uses
+  sdl2,
+  px.sdl,
+  u.simulation,
+  u.simcfg,
+  u.map,
+  u.ants
+  ;
 type
   {Main Application}
   TMainApp = class
