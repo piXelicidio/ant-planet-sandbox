@@ -8,7 +8,7 @@ program HormigasLocas;
 uses
   System.SysUtils,
   sdl2,
-  px.vec2d,
+  px.vec2d, system.math,
   px.sdl in '..\UnitsLib\pxsdl\px.sdl.pas',
   u.ants in 'code\u.ants.pas',
   u.simulation in 'code\u.simulation.pas',

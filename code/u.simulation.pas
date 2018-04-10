@@ -45,7 +45,9 @@ var
   pheromInfo :PPheromInfo;
   scan: Integer;
 begin
-  for i := 0 to ants.items.Count-1 do
+  //for i := 0 to ants.items.Count-1 do
+  i := 0;
+  while (i < ants.items.Count) do
   begin
     ant := ants.items.List[i];
     currGrid := @map.grid[ ant.gridPos.x, ant.gridPos.y ];
@@ -71,6 +73,9 @@ begin
         currGrid.pheromInfo.seen[ interest ].where := ant.oldestPositionStored^;
       end;
     end;
+    //
+    inc(i);
+    i := i + random( cfg.antLogicFrameSkip );
   end;
 end;
 

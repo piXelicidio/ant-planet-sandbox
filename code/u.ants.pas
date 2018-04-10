@@ -336,6 +336,7 @@ end;
 
 procedure TAnt.updateRot;
 begin
+    if dir.x<-1 then dir.x := -1 else if dir.x>1 then dir.x:=1; //some rare cases to avoid
     if dir.y>0 then rot := arcCos( dir.x ) else rot := pi*2 - arcCos( dir.x );
 end;
 
