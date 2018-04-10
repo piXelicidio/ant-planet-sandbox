@@ -3,7 +3,7 @@ unit u.map;
 interface
 
 uses
-      system.math,
+      system.math, system.SysUtils,
       px.sdl,
       px.vec2d,
       sdl2,
@@ -100,7 +100,6 @@ begin
       begin
         if newGrid.passLevel = CFG_passLevelGround then ant.isWalkingOver := ctGround else ant.isWalkingOver := ctBlock;
       end;
-
       //update ant with new gpos
       ant.gridPos := newGpos;
     end;
@@ -111,23 +110,47 @@ procedure TMap.draw;
 var
   i,j :integer;
   rect :TSDL_Rect;
+  gdata :PMapData;
+  interest :TAntInterests;
+  target :TVec2di;
+  gradient :integer;
 begin
   for i := 0 to fW-1 do
     for j := 0 to fH-1 do
     begin
+      gdata := @grid[i,j];
       //sdl.drawRect( i * cfg.mapCellSize, j * cfg.mapCellSize, cfg.mapCellSize, cfg.mapCellSize);
       rect.x := i * cfg.mapCellSize;
       rect.y := j * cfg.mapCellSize;
       rect.w := cfg.mapCellSize;
       rect.h := cfg.mapCellSize;
-      if grid[i,j].cell=nil then
+
+      if gdata.cell=nil then
       begin
-        if grid[i,j].passLevel = CFG_passLevelGround
+        if gdata.passLevel = CFG_passLevelGround
                 then SDL_RenderCopy(sdl.rend, fGround, nil, @rect )
                 else SDL_RenderCopy(sdl.rend, fBlock, nil, @rect );
       end else
       begin
-        grid[i,j].cell.draw(rect.x, rect.y);
+        gdata.cell.draw(rect.x, rect.y);
+      end;
+      //show pheromones
+      if cfg.debugPheromones then
+      begin
+        for interest := Low(TAntInterests) to High(TAntInterests) do
+          if gdata.pheromInfo.seen[interest].frameTime>0 then
+          begin
+            gradient := frameTimer.time - gdata.pheromInfo.seen[interest].frameTime;
+            //sdl.debug( IntToStr(gdata.pheromInfo.seen[interest].frameTime));
+            gradient := gradient div 5;
+            if gradient > 255 then gradient := 255;
+            if gradient < 200 then
+            begin
+              sdl.setColor(gradient,255-gradient,0);
+              target := gdata.pheromInfo.seen[interest].where.floored;
+              SDL_RenderDrawLine(sdl.rend, rect.x + rect.w div 2, rect.y + rect.h div 2, target.x, target.y );
+            end;
+          end;
       end;
     end;
 end;
@@ -160,7 +183,7 @@ end;
 procedure TMap.init;
 var
   i,j  :integer;
-  f :TCellTypes;
+  interest :TCellTypes;
 begin
   //load
   fGround := sdl.loadTexture('images\ground01.png');
@@ -180,12 +203,12 @@ begin
       if random > 0.06 then grid[i,j].passLevel := CFG_passLevelGround
                        else grid[i,j].passLevel := CFG_passLevelBlock  ;
 
-      for f := low(TAntInterests) to high(TAntInterests) do
+      for interest := low(TAntInterests) to high(TAntInterests) do
       begin
         with grid[i,j] do
         begin
-          pheromInfo.seen[ f ].frameTime := -1;
-          pheromInfo.seen[ f ].where := vec(0,0);
+          pheromInfo.seen[ interest ].frameTime := -1;
+          pheromInfo.seen[ interest ].where := vec(0,0);
         end;
       end;
 

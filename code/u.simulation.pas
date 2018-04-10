@@ -18,6 +18,7 @@ type
       procedure init;
       procedure finalize;
       procedure update;
+      procedure phero_algorithm;
       procedure draw;
   end;
 var
@@ -34,12 +35,36 @@ begin
   ants.addNewAndInit(cfg.numAnts, map.HiddenCell, lrOwner);
 end;
 
+procedure TSimulation.phero_algorithm;
+var
+  i :integer;
+  ant :PAnt;
+  interest :TAntInterests;
+  currGrid :PMapData;
+begin
+  for i := 0 to ants.items.Count-1 do
+  begin
+    //update pheromone info in map;
+    ant := ants.items.List[i];
+    currGrid := @map.grid[ ant.gridPos.x, ant.gridPos.y ];
+    for interest := Low(TAntInterests) to High(TAntInterests) do
+    begin
+      if currGrid.pheromInfo.seen[ interest ].frameTime < ant.LastTimeSeen[ interest ] then
+      begin
+        currGrid.pheromInfo.seen[ interest ].frameTime := ant.LastTimeSeen[ interest ];
+        currGrid.pheromInfo.seen[ interest ].where := ant.oldestPositionStored^;
+      end;
+    end;
+  end;
+end;
+
 procedure TSimulation.update;
 begin
   map.update;
   ants.update;
   ants.solveCollisions( map.getPassLevel );
   map.detectAntCellEvents( ants );
+  phero_Algorithm;
   frameTimer.nextFrame;
 end;
 

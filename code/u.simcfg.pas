@@ -47,6 +47,7 @@ type
     mapW  :integer;
     mapH  :integer;
     mapCellSize :integer;
+    debugPheromones :boolean;
   end;
 
 var
@@ -70,6 +71,7 @@ initialization
     mapW := 18;
     mapH := 10;
     mapCellSize := 64;
+    debugPheromones := true;
   end;
 
   frameTimer := TFrameTimer.create;

@@ -73,6 +73,7 @@ implementation
 
 procedure TFood.beginOverlap(ant: PAnt);
 begin
+  inherited;
   ant.cargo := true;
 end;
 
@@ -83,7 +84,7 @@ end;
 
 procedure TFood.endOverlap(ant: PAnt);
 begin
-
+  inherited;
 end;
 
 { TCave }
@@ -91,6 +92,7 @@ end;
 
 procedure TCave.beginOverlap(ant: PAnt);
 begin
+  inherited;
   ant.cargo := false;
 end;
 
@@ -124,7 +126,12 @@ end;
 
 procedure TCell.endOverlap(ant: PAnt);
 begin
-
+  //check if this is interesting for ants:
+  if fCellType <= high(TAntInterests) then
+  begin
+    //tell ant: you have seen this
+    ant.LastTimeSeen[fCellType] := frameTimer.time;
+  end;
 end;
 
 { TCellFactory }

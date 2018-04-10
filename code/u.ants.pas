@@ -21,7 +21,6 @@ type
       rot   : single;  //rotation equivalent to current direciton;
       PastPositions :array[0..CFG_antPositionMemorySize-1] of TVec2d;
       oldestPositionIndex :integer;
-      oldestPositionStored :PVec2D;
       procedure updateRot;
       procedure updateDir;
       procedure storePosition(const vec :TVec2d );
@@ -36,6 +35,13 @@ type
       gridPos :TVec2di;
       isWalkingOver :TCellTypes;
       cargo :boolean;
+
+      LastTimeSeen :array[TAntInterests] of integer;
+      maxTimeSeen_MyTarget :integer;
+      lookingFor :TAntInterests;
+      comingFrom :TAntInterests;
+      oldestPositionStored :PVec2D;
+
       ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove
       procedure setDir( const aNormalizedVec :TVec2d );
       procedure setDirAndNormalize( const unormalizedVec :TVec2d );
@@ -199,6 +205,7 @@ procedure TAntPack.addNewAndInit( amount: integer;const mapHiddenCell:TVec2di; l
 var
   ant :PAnt;
   i, p: Integer;
+  interest:TAntInterests;
 begin
   fRadial.Init(cfg.antRadialScanNum);
   for i := 0 to amount-1 do
@@ -221,6 +228,10 @@ begin
     end;
     ant.oldestPositionIndex := 0;
     ant.oldestPositionStored := @ant.PastPositions[0];
+    for interest := Low(TAntInterests) to High(TantInterests) do
+    begin
+      ant.LastTimeSeen[interest] := -1;
+    end;
 
   end;
 end;
