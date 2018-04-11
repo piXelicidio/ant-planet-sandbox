@@ -46,13 +46,15 @@ begin
   sdl.cfg.window.w := cfg.windowW;
   sdl.cfg.window.h := cfg.windowH;
   sim.init;
+  //SDL_RenderSetIntegerScale(sdl.rend, SDL_FALSE);
+  SDL_RenderSetScale( sdl.rend, 1.1, 1.1);
 end;
 
 
 procedure TMainApp.update;
 begin
   sim.update;
-  SDL_Delay(10);
+  //SDL_Delay(10);
 end;
 
 procedure TMainApp.draw;

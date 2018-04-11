@@ -62,7 +62,8 @@ type
       fRadial :TRadial;
     public
       items :TAntList;
-      img :TSprite;
+      antImg :TSprite;
+      fFoodCargoImg :TSprite;
       antOwner :boolean;
       constructor Create;
       destructor Destroy;override;
@@ -114,13 +115,15 @@ begin
     ant := items.list[i];
     x1 := Floor( ant.pos.x );
     y1 := Floor( ant.pos.y );
-    sdl.drawSprite(img, x1, y1, ant.rot * 180 / pi);
-    if ant.cargo then
+    sdl.drawSprite(antImg, x1, y1, ant.rot * 180 / pi);
+    if ant.cargo  then
     begin
       sdl.setColor(255,255,25);
-      x2 := Floor( ant.pos.x + ant.dir.x * 10 -3 );
-      y2 := Floor( ant.pos.y + ant.dir.y * 10 -3 );
-      sdl.drawRect( x2, y2, 5, 5 );
+      x2 := Floor( ant.pos.x + ant.dir.x * 10 );
+      y2 := Floor( ant.pos.y + ant.dir.y * 10 );
+      //sdl.drawRect( x2, y2, 5, 5 );
+      sdl.drawSprite(fFoodCargoImg, x2, y2);
+      //SDL_RenderDrawRect()
     end;
 
     {$IFDEF DEBUG}
@@ -147,9 +150,10 @@ end;
 
 procedure TAntPack.Init;
 begin
-  img := sdl.newSprite( sdl.loadTexture('images\antWalk_00.png') );
-  img.center.x := img.srcRect.w div 2;
-  img.center.y := (img.srcRect.h div 2)+1;
+  antImg := sdl.newSprite( sdl.loadTexture('images\antWalk_00.png') );
+  antImg.centerToMiddle;
+  fFoodCargoImg := sdl.newSprite(sdl.loadTexture('images\foodCargo.png'));
+  fFoodCargoImg.centerToMiddle;
 end;
 
 {Solve ants collisions, allow or fix movement}

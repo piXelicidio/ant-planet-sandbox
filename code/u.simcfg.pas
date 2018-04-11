@@ -63,13 +63,13 @@ initialization
   begin
     windowW := 1280;
     windowH := 720;
-    numAnts := 20000;
-    numDebugAnts := 3;
+    numAnts := 5000;
+    numDebugAnts := 0;
     antMaxSpeed := 1.2;
-    antErratic := 0.2;
+    antErratic := 0.18;
     antAccel := 0.1;
     antRadialScanNum := 16;
-    antLogicFrameSkip := 0;   //a max random value to skip ants from checking the pheromones path algorithm
+    antLogicFrameSkip := 3;   //value to skip ants from checking the pheromones path algorithm
     mapW := 20;
     mapH := 12;
     mapCellSize := 64;
