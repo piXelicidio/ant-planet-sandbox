@@ -143,6 +143,7 @@ begin
       x2 := Floor( ant.oldestPositionStored.x );
       y2 := Floor( ant.oldestPositionStored.y );
       sdl.drawRect(x2,y2, 2,2);
+      sdl.drawText('Soy bonita!', x2,y2);
     end;
     {$ENDIF}
   end;
@@ -151,9 +152,9 @@ end;
 procedure TAntPack.Init;
 begin
   antImg := sdl.newSprite( sdl.loadTexture('images\antWalk_00.png') );
-  antImg.centerToMiddle;
+  sdl.setCenterToMiddle(antImg);
   fFoodCargoImg := sdl.newSprite(sdl.loadTexture('images\foodCargo.png'));
-  fFoodCargoImg.centerToMiddle;
+  sdl.setCenterToMiddle(fFoodCargoImg);
 end;
 
 {Solve ants collisions, allow or fix movement}

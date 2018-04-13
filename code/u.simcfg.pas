@@ -63,8 +63,8 @@ initialization
   begin
     windowW := 1280;
     windowH := 720;
-    numAnts := 5000;
-    numDebugAnts := 0;
+    numAnts := 1000;
+    numDebugAnts := 3;
     antMaxSpeed := 1.2;
     antErratic := 0.18;
     antAccel := 0.1;
