@@ -38,6 +38,7 @@ type
   TSimCfg = record
     windowW  :integer;
     windowH  :integer;
+    screenLogicalHight :integer;
     numAnts  :integer;
     numDebugAnts :integer;
     antMaxSpeed :single;
@@ -49,6 +50,8 @@ type
     mapCellSize :integer;
     debugPheromones :boolean;
     antLogicFrameSkip :integer;
+    camMaxZoom :single;
+    camMinZoom :single;
   end;
 
 var
@@ -63,7 +66,8 @@ initialization
   begin
     windowW := 1280;
     windowH := 720;
-    numAnts := 1000;
+    screenLogicalHight := 1080;
+    numAnts := 10000;
     numDebugAnts := 3;
     antMaxSpeed := 1.2;
     antErratic := 0.18;
@@ -74,6 +78,8 @@ initialization
     mapH := 12;
     mapCellSize := 64;
     debugPheromones := false;
+    camMaxZoom := 2;
+    camMinZoom := 0.5;
   end;
 
   frameTimer := TFrameTimer.create;

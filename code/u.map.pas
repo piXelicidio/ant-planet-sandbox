@@ -9,6 +9,7 @@ uses
       sdl2,
       u.ants,
       u.simcfg,
+      u.camview,
       u.cell;
 
 type
@@ -120,8 +121,8 @@ begin
     begin
       gdata := @grid[i,j];
       //sdl.drawRect( i * cfg.mapCellSize, j * cfg.mapCellSize, cfg.mapCellSize, cfg.mapCellSize);
-      rect.x := i * cfg.mapCellSize;
-      rect.y := j * cfg.mapCellSize;
+      rect.x := i * cfg.mapCellSize + cam.x;
+      rect.y := j * cfg.mapCellSize + cam.y;
       rect.w := cfg.mapCellSize;
       rect.h := cfg.mapCellSize;
 

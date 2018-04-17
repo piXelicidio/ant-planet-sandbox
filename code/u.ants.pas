@@ -9,7 +9,8 @@ uses
   generics.collections,
   system.Math,
   u.simcfg,
-  u.utils;
+  u.utils,
+  u.camview;
 
 type
   TListRef = (lrIgnore, lrOwner, lrGrid);
@@ -113,14 +114,14 @@ begin
   for i := 0 to items.Count-1 do
   begin
     ant := items.list[i];
-    x1 := Floor( ant.pos.x );
-    y1 := Floor( ant.pos.y );
+    x1 := Floor( ant.pos.x ) + cam.x;
+    y1 := Floor( ant.pos.y ) + cam.y;
     sdl.drawSprite(antImg, x1, y1, ant.rot * 180 / pi);
     if ant.cargo  then
     begin
       sdl.setColor(255,255,25);
-      x2 := Floor( ant.pos.x + ant.dir.x * 10 );
-      y2 := Floor( ant.pos.y + ant.dir.y * 10 );
+      x2 := Floor( ant.pos.x + ant.dir.x * 10 ) + cam.x;
+      y2 := Floor( ant.pos.y + ant.dir.y * 10 ) + cam.y;
       //sdl.drawRect( x2, y2, 5, 5 );
       sdl.drawSprite(fFoodCargoImg, x2, y2);
       //SDL_RenderDrawRect()
@@ -129,19 +130,19 @@ begin
     {$IFDEF DEBUG}
     if i<cfg.numDebugAnts then
     begin
-      x2 := Floor( ant.pos.x + ant.dir.x * 40 );
-      y2 := Floor( ant.pos.y + ant.dir.y * 40 );
+      x2 := Floor( ant.pos.x + ant.dir.x * 40 ) + cam.x;
+      y2 := Floor( ant.pos.y + ant.dir.y * 40 ) + cam.y;
       sdl.setColor(255,255,255);
       // direction
       SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
-      sdl.drawRect( ant.gridPos.x * cfg.mapCellSize,
-                    ant.gridPos.y * cfg.mapCellSize,
+      sdl.drawRect( ant.gridPos.x * cfg.mapCellSize + cam.x,
+                    ant.gridPos.y * cfg.mapCellSize + cam.y,
                     cfg.mapCellSize,
                     cfg.mapCellSize );
       // oldestPosition remembered;
       sdl.setColor(25,25,255);
-      x2 := Floor( ant.oldestPositionStored.x );
-      y2 := Floor( ant.oldestPositionStored.y );
+      x2 := Floor( ant.oldestPositionStored.x ) + cam.x;
+      y2 := Floor( ant.oldestPositionStored.y ) + cam.y;
       sdl.drawRect(x2,y2, 2,2);
       sdl.drawText('Soy bonita!', x2,y2);
     end;
