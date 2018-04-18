@@ -13,7 +13,13 @@ type
   //add more ant interests between ctFood and ctCave;
   TAntInterests = ctFood..ctCave;
 
+  TMoveButtons = record
+    left, right, up, down :boolean;
+  end;
+
 const
+  TCellTypeNames :array[TCellTypes] of string = ('food','cave','grass','block','ground');
+
   //to help to scan the grid, steps to check middle and all 8 neibors of a cell in 0,0
   CFG_GridScan :array[0..CFG_MaxScanDirs] of
     TVec2di =  ( (x: 0; y: 0),
@@ -67,15 +73,15 @@ initialization
     windowW := 1280;
     windowH := 720;
     screenLogicalHight := 1080;
-    numAnts := 10000;
+    numAnts := 11000;
     numDebugAnts := 3;
     antMaxSpeed := 1.2;
     antErratic := 0.18;
     antAccel := 0.1;
     antRadialScanNum := 16;
     antLogicFrameSkip := 3;   //value to skip ants from checking the pheromones path algorithm
-    mapW := 20;
-    mapH := 12;
+    mapW := 30;
+    mapH := 24;
     mapCellSize := 64;
     debugPheromones := false;
     camMaxZoom := 2;
