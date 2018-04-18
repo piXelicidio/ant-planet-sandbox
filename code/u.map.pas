@@ -238,7 +238,7 @@ end;
 
 procedure TMap.RemoveCell(xg, yg: integer);
 begin
-  if (xg>=0) and (xg<W) and (yg>=0) and (yg<H)  then
+  if (xg>=1) and (xg<W-1) and (yg>=1) and (yg<H-1)  then
   with grid[xg,yg] do
   begin
     passLevel := CFG_passLevelGround;
@@ -252,7 +252,7 @@ end;
 
 procedure TMap.SetCell(xg, yg: integer; cellType: TCellTypes);
 begin
-  if (xg>=0) and (xg<W) and (yg>=0) and (yg<H)  then
+  if (xg>=1) and (xg<W-1) and (yg>=1) and (yg<H-1)  then
   begin
     RemoveCell(xg,yg);
     with grid[xg, yg] do

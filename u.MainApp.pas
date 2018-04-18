@@ -18,7 +18,6 @@ type
   {Main Application}
   TMainApp = class
     public
-      appScale :TVec2d;
       moveBtn  :TMoveButtons;
       gui :TAppGui;
 
@@ -50,7 +49,6 @@ begin
   sdl.onUpdate := update;
   sdl.onDraw := draw;
   sdl.onFinalize := Finalize;
-  sdl.onKeyDown := onKeyDown;
 
   sdl.cfg.window.w := cfg.windowW;
   sdl.cfg.window.h := cfg.windowH;
@@ -74,23 +72,24 @@ begin
   logical.x := (cfg.screenLogicalHight * sdl.window.w)  div sdl.window.h;
   logical.y := cfg.screenLogicalHight;
   sdl.LogicalSize := logical;
-  SDL_RenderGetScale( sdl.rend, @appScale.x, @appScale.y);
+  SDL_RenderGetScale( sdl.rend, @cam.appScale.x, @cam.appScale.y);
   cam.x := 20;
   cam.y := 10;
   cam.zoom := 2;
-
-  sdl.OnMouseDown := onMouseDown;
-  sdl.OnMouseUp := onMouseUp;
-  sdl.OnMouseMove := onMouseMove;
-  sdl.OnMouseWheel := onMouseWheel;
 
   sdl.onKeyUp := onKeyUp;
   gui := TAppGui.create;
   gui.init;
 
+  sdl.OnMouseDown := onMouseDown;
+  sdl.OnMouseUp := onMouseUp;
+  sdl.OnMouseMove := onMouseMove;
+  sdl.OnMouseWheel := onMouseWheel;
+  sdl.onKeyDown := onKeyDown;
 end;
 
 procedure TMainApp.update;
+var j:integer;
 begin
   if moveBtn.left then cam.x := cam.x + 5;
   if moveBtn.right then cam.x := cam.x - 5;
@@ -100,6 +99,8 @@ begin
   sim.update;
   gui.lblFPS.Text :=  'FPS: '+ IntToStr( sdl.FPS ) ;
   gui.lblNumAnts.Text := 'Ants: '+ IntToStr( sim.ants.items.Count  );
+
+
   SDL_Delay(1);
 end;
 
@@ -107,7 +108,7 @@ procedure TMainApp.draw;
 begin
   sdl.setColor(0,0,0);
   SDL_RenderClear(sdl.rend); //TODO: can be better without cls
-  SDL_RenderSetScale( sdl.rend, appScale.x * cam.zoom, appScale.y * cam.zoom);
+  SDL_RenderSetScale( sdl.rend, cam.appScale.x * cam.zoom, cam.appScale.y * cam.zoom);
   sim.draw;
   SDL_RenderSetScale( sdl.rend, 1, 1);
   // SDL_RenderSetScale(sdl.rend, appScale.x, appScale.y); //for highdef displays..
@@ -128,7 +129,7 @@ end;
 procedure TMainApp.onKeyUp(const key: TSDL_KeyboardEvent);
 begin
   case key.keysym.scancode of
-    SDL_SCANCODE_F11 : begin sdl.fullScreen := not sdl.fullScreen; SDL_RenderGetScale(sdl.rend, @appScale.x, @appScale.y)  end;
+    SDL_SCANCODE_F11 : begin sdl.fullScreen := not sdl.fullScreen; SDL_RenderGetScale(sdl.rend, @cam.appScale.x, @cam.appScale.y)  end;
     SDL_SCANCODE_ESCAPE : sdl.quit;
     SDL_SCANCODE_A: moveBtn.left := false;
     SDL_SCANCODE_D: moveBtn.right := false;
@@ -149,7 +150,7 @@ procedure TMainApp.onMouseMove(const mMouse: TSDL_MouseMotionEvent);
 begin
   if not gui.screen.Consume_MouseMove(mMouse) then
   begin
-    screenClick(mMouse.x, mMouse.y);
+    if (mMouse.state and SDL_BUTTON_LMASK)>0 then screenClick(mMouse.x, mMouse.y);
   end;
 end;
 
@@ -166,9 +167,19 @@ end;
 procedure TMainApp.screenClick(x, y: integer);
 var
   posg :TVec2di;
+  posw :TVec2d;
 begin
-  posg := sim.map.WorldToGrid( cam.ScreenToWorld(x,y) );
-  sim.map.SetCell(posg.x, posg.y, ctBlock);
+  posw := cam.ScreenToWorld(x,y);
+  posg := sim.map.WorldToGrid( posw  );
+
+  if  gui.radioTool.SelectedText='block' then  sim.map.SetCell(posg.x, posg.y, ctBlock)
+  else
+  if  gui.radioTool.SelectedText='food' then  sim.map.SetCell(posg.x, posg.y, ctFood)
+  else
+  if  gui.radioTool.SelectedText='cave' then  sim.map.SetCell(posg.x, posg.y, ctCave)
+  else
+  if  gui.radioTool.SelectedText='remove' then  sim.map.RemoveCell(posg.x, posg.y);
+
 end;
 
 procedure TMainApp.Finalize;

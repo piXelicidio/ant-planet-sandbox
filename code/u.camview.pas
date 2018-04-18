@@ -3,7 +3,7 @@ unit u.camview;
 interface
 uses
   px.vec2d,  px.sdl, system.generics.collections,
-  u.simcfg
+  u.simcfg, system.Math
     ;
 
 type
@@ -11,6 +11,7 @@ type
 TCamView = class
   x, y :integer;
   zoom :single;
+  appScale :TVec2d;
   procedure ZoomInc( value :single );
   function ScreenToWorld( ax, ay :integer):TVec2d;
 end;
@@ -24,8 +25,8 @@ implementation
 
 function TCamView.ScreenToWorld(ax, ay: integer): TVec2d;
 begin
-  result.x :=round( ax / zoom - x);
-  result.y :=round( ay / zoom - y);
+  result.x :=floor( ax / zoom / appScale.x - x);
+  result.y :=floor( ay / zoom / appScale.y - y);
 end;
 
 procedure TCamView.ZoomInc(value: single);
