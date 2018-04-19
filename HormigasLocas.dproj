@@ -5,7 +5,7 @@
         <FrameworkType>None</FrameworkType>
         <MainSource>HormigasLocas.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Console</AppType>
@@ -91,8 +91,8 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <DCC_RangeChecking>true</DCC_RangeChecking>
         <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+        <DCC_RangeChecking>true</DCC_RangeChecking>
         <DCC_ExeOutput>.\bin\$(Platform)</DCC_ExeOutput>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
     </PropertyGroup>
@@ -114,15 +114,16 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="..\UnitsLib\pxsdl\px.sdl.pas"/>
+        <DCCReference Include="u.MainApp.pas"/>
         <DCCReference Include="code\u.ants.pas"/>
         <DCCReference Include="code\u.simulation.pas"/>
         <DCCReference Include="code\u.map.pas"/>
         <DCCReference Include="code\u.cell.pas"/>
         <DCCReference Include="code\u.camview.pas"/>
-        <DCCReference Include="u.MainApp.pas"/>
         <DCCReference Include="code\u.simcfg.pas"/>
         <DCCReference Include="code\u.utils.pas"/>
         <DCCReference Include="code\u.frametimer.pas"/>
+        <DCCReference Include="code\u.gui.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

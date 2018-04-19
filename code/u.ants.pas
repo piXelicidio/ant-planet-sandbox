@@ -9,7 +9,8 @@ uses
   generics.collections,
   system.Math,
   u.simcfg,
-  u.utils;
+  u.utils,
+  u.camview;
 
 type
   TListRef = (lrIgnore, lrOwner, lrGrid);
@@ -62,7 +63,8 @@ type
       fRadial :TRadial;
     public
       items :TAntList;
-      img :TSprite;
+      antImg :TSprite;
+      fFoodCargoImg :TSprite;
       antOwner :boolean;
       constructor Create;
       destructor Destroy;override;
@@ -112,34 +114,37 @@ begin
   for i := 0 to items.Count-1 do
   begin
     ant := items.list[i];
-    x1 := Floor( ant.pos.x );
-    y1 := Floor( ant.pos.y );
-    sdl.drawSprite(img, x1, y1, ant.rot * 180 / pi);
-    if ant.cargo then
+    x1 := Floor( ant.pos.x ) + cam.x;
+    y1 := Floor( ant.pos.y ) + cam.y;
+    sdl.drawSprite(antImg, x1, y1, ant.rot * 180 / pi);
+    if ant.cargo  then
     begin
       sdl.setColor(255,255,25);
-      x2 := Floor( ant.pos.x + ant.dir.x * 10 -3 );
-      y2 := Floor( ant.pos.y + ant.dir.y * 10 -3 );
-      sdl.drawRect( x2, y2, 5, 5 );
+      x2 := Floor( ant.pos.x + ant.dir.x * 10 ) + cam.x;
+      y2 := Floor( ant.pos.y + ant.dir.y * 10 ) + cam.y;
+      //sdl.drawRect( x2, y2, 5, 5 );
+      sdl.drawSprite(fFoodCargoImg, x2, y2);
+      //SDL_RenderDrawRect()
     end;
 
     {$IFDEF DEBUG}
     if i<cfg.numDebugAnts then
     begin
-      x2 := Floor( ant.pos.x + ant.dir.x * 40 );
-      y2 := Floor( ant.pos.y + ant.dir.y * 40 );
+      x2 := Floor( ant.pos.x + ant.dir.x * 40 ) + cam.x;
+      y2 := Floor( ant.pos.y + ant.dir.y * 40 ) + cam.y;
       sdl.setColor(255,255,255);
       // direction
       SDL_RenderDrawLine(sdl.rend, x1, y1, x2, y2);
-      sdl.drawRect( ant.gridPos.x * cfg.mapCellSize,
-                    ant.gridPos.y * cfg.mapCellSize,
+      sdl.drawRect( ant.gridPos.x * cfg.mapCellSize + cam.x,
+                    ant.gridPos.y * cfg.mapCellSize + cam.y,
                     cfg.mapCellSize,
                     cfg.mapCellSize );
       // oldestPosition remembered;
       sdl.setColor(25,25,255);
-      x2 := Floor( ant.oldestPositionStored.x );
-      y2 := Floor( ant.oldestPositionStored.y );
+      x2 := Floor( ant.oldestPositionStored.x ) + cam.x;
+      y2 := Floor( ant.oldestPositionStored.y ) + cam.y;
       sdl.drawRect(x2,y2, 2,2);
+      sdl.drawText('Soy bonita!', x2,y2);
     end;
     {$ENDIF}
   end;
@@ -147,9 +152,10 @@ end;
 
 procedure TAntPack.Init;
 begin
-  img := sdl.newSprite( sdl.loadTexture('images\antWalk_00.png') );
-  img.center.x := img.srcRect.w div 2;
-  img.center.y := (img.srcRect.h div 2)+1;
+  antImg := sdl.newSprite( sdl.loadTexture('images\antWalk_00.png') );
+  sdl.setCenterToMiddle(antImg);
+  fFoodCargoImg := sdl.newSprite(sdl.loadTexture('images\foodCargo.png'));
+  sdl.setCenterToMiddle(fFoodCargoImg);
 end;
 
 {Solve ants collisions, allow or fix movement}
@@ -216,11 +222,11 @@ begin
     new(ant);
     ant.pos.x :=100+ random*400;
     ant.pos.y :=100+ random*300;
-    {using the hiddenCell force the map to detect first overlappings without special validations}
-    {ants will appear to come always form a different grid cell than the first one. }
+    
     ant.gridPos.X := 0;
     ant.gridPos.y := 0;
     ant.speed := cfg.antMaxSpeed * 0.1;
+    ant.friction := 1;
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
     ant.ListRefIdx[listRef] :=  items.add(ant);
@@ -251,6 +257,7 @@ begin
     ant := items.list[i];
     ant.storePosition(ant.pos);
     ant.rotate( random*cfg.antErratic - cfg.antErratic / 2);
+    ant.speed := ant.speed * ant.friction;
     ant.wishPos := ant.pos + ant.dir * ant.speed;
     ant.speed := ant.speed + cfg.antAccel;
     if ant.speed > cfg.antMaxSpeed then ant.speed := cfg.antMaxSpeed;

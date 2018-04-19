@@ -25,7 +25,12 @@ type
   end;
 
   TGrass = class(TCell)
+   private
    public
+    myFriction :single;
+    constructor create;
+    procedure beginOverlap( ant :PAnt );override;
+    procedure endOverlap( ant : PAnt );override;
   end;
 
   TCave = class(TCell)
@@ -91,7 +96,7 @@ end;
 
 procedure TFood.endOverlap(ant: PAnt);
 begin
-  inherited;
+  ant.LastTimeSeen[fCellType] := frameTimer.time;
 end;
 
 { TCave }
@@ -117,8 +122,8 @@ end;
 
 procedure TCave.endOverlap(ant: PAnt);
 begin
-  inherited;
-
+  //tell ant: you have seen this
+  ant.LastTimeSeen[fCellType] := frameTimer.time;
 end;
 
 { TCell }
@@ -140,12 +145,6 @@ end;
 
 procedure TCell.endOverlap(ant: PAnt);
 begin
-  //check if this is interesting for ants:
-  if fCellType <= high(TAntInterests) then
-  begin
-    //tell ant: you have seen this
-    ant.LastTimeSeen[fCellType] := frameTimer.time;
-  end;
 end;
 
 { TCellFactory }
@@ -157,7 +156,7 @@ end;
 
 procedure TCellFactory.init;
 begin
-  fFoodImg := sdl.newSprite( sdl.loadTexture('images\food01.png'));
+  fFoodImg := sdl.newSprite( sdl.loadTexture('images\food03.png'));
   fCaveImg := sdl.newSprite( sdl.loadTexture('images\cave.png'));
   fGrassImg := sdl.newSprite( sdl.loadTexture('images\grass01.png'));
   fOneCave := TCave.create;
@@ -183,6 +182,25 @@ begin
   Result := TFood.create;
   Result.fNeedDestroyWhenRemoved := true;
   Result.fImg := @fFoodImg;
+end;
+
+{ TGrass }
+
+procedure TGrass.beginOverlap(ant: PAnt);
+begin
+  ant.friction := myFriction;
+end;
+
+constructor TGrass.create;
+begin
+  inherited;
+  fCellType :=ctGrass;
+  myFriction := 0.8;
+end;
+
+procedure TGrass.endOverlap(ant: PAnt);
+begin
+  ant.friction := 1;
 end;
 
 initialization

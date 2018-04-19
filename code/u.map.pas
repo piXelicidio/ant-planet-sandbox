@@ -9,6 +9,7 @@ uses
       sdl2,
       u.ants,
       u.simcfg,
+      u.camview,
       u.cell;
 
 type
@@ -81,7 +82,7 @@ var
   ant :PAnt;
   newGpos :TVec2di;
   newGrid, oldGrid :PMapData;
-begin
+begin     //TODO: something fishy here hapening with GRASS that is not implemented yet
   for i := 0 to ants.items.Count-1 do
   begin
     ant := ants.items.List[i];
@@ -120,8 +121,8 @@ begin
     begin
       gdata := @grid[i,j];
       //sdl.drawRect( i * cfg.mapCellSize, j * cfg.mapCellSize, cfg.mapCellSize, cfg.mapCellSize);
-      rect.x := i * cfg.mapCellSize;
-      rect.y := j * cfg.mapCellSize;
+      rect.x := i * cfg.mapCellSize + cam.x;
+      rect.y := j * cfg.mapCellSize + cam.y;
       rect.w := cfg.mapCellSize;
       rect.h := cfg.mapCellSize;
 
@@ -237,7 +238,7 @@ end;
 
 procedure TMap.RemoveCell(xg, yg: integer);
 begin
-  if (xg>=0) and (xg<W) and (yg>=0) and (yg<H)  then
+  if (xg>=1) and (xg<W-1) and (yg>=1) and (yg<H-1)  then
   with grid[xg,yg] do
   begin
     passLevel := CFG_passLevelGround;
@@ -251,14 +252,14 @@ end;
 
 procedure TMap.SetCell(xg, yg: integer; cellType: TCellTypes);
 begin
-  if (xg>=0) and (xg<W) and (yg>=0) and (yg<H)  then
+  if (xg>=1) and (xg<W-1) and (yg>=1) and (yg<H-1)  then
   begin
     RemoveCell(xg,yg);
     with grid[xg, yg] do
       case cellType of
         ctBlock: passLevel := CFG_passLevelBlock;
         ctGround:;//nothing needed;
-        ctGrass: cell := cellFactory.getGrass;
+        ctGrass: cell := cellFactory.getGrass;    //TODO: grass has a problem dude
         ctFood: cell := cellFactory.newFood;
         ctCave: cell := cellFactory.getCave;
       end;

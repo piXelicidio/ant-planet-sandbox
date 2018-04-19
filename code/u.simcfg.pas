@@ -13,7 +13,13 @@ type
   //add more ant interests between ctFood and ctCave;
   TAntInterests = ctFood..ctCave;
 
+  TMoveButtons = record
+    left, right, up, down :boolean;
+  end;
+
 const
+  TCellTypeNames :array[TCellTypes] of string = ('food','cave','grass','block','ground');
+
   //to help to scan the grid, steps to check middle and all 8 neibors of a cell in 0,0
   CFG_GridScan :array[0..CFG_MaxScanDirs] of
     TVec2di =  ( (x: 0; y: 0),
@@ -38,6 +44,7 @@ type
   TSimCfg = record
     windowW  :integer;
     windowH  :integer;
+    screenLogicalHight :integer;
     numAnts  :integer;
     numDebugAnts :integer;
     antMaxSpeed :single;
@@ -49,6 +56,8 @@ type
     mapCellSize :integer;
     debugPheromones :boolean;
     antLogicFrameSkip :integer;
+    camMaxZoom :single;
+    camMinZoom :single;
   end;
 
 var
@@ -63,17 +72,20 @@ initialization
   begin
     windowW := 1280;
     windowH := 720;
-    numAnts := 20000;
+    screenLogicalHight := 1080;
+    numAnts := 11000;
     numDebugAnts := 3;
     antMaxSpeed := 1.2;
-    antErratic := 0.2;
+    antErratic := 0.12;
     antAccel := 0.1;
     antRadialScanNum := 16;
-    antLogicFrameSkip := 0;   //a max random value to skip ants from checking the pheromones path algorithm
-    mapW := 20;
-    mapH := 12;
+    antLogicFrameSkip := 1;   //value to skip ants from checking the pheromones path algorithm
+    mapW := 50;
+    mapH := 30;
     mapCellSize := 64;
     debugPheromones := false;
+    camMaxZoom := 2;
+    camMinZoom := 0.2;
   end;
 
   frameTimer := TFrameTimer.create;

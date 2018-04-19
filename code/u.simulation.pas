@@ -29,6 +29,7 @@ implementation
 
 procedure TSimulation.init;
 begin
+  randomize;
   cellFactory.init;
   map.init;
   ants.Init;
@@ -46,7 +47,7 @@ var
   scan: Integer;
 begin
   //for i := 0 to ants.items.Count-1 do
-  i := 0;
+  i := frameTimer.time mod cfg.antLogicFrameSkip;
   while (i < ants.items.Count) do
   begin
     ant := ants.items.List[i];
@@ -74,8 +75,7 @@ begin
       end;
     end;
     //
-    inc(i);
-    i := i + random( cfg.antLogicFrameSkip );
+    inc( i, cfg.antLogicFrameSkip );
   end;
 end;
 
