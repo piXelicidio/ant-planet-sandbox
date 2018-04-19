@@ -22,6 +22,7 @@ type
       gui :TAppGui;
 
       procedure screenClick(x, y:integer; move:boolean);
+      procedure ShowPheromsClick( sender:TArea;const mMouse: TSDL_MouseButtonEvent);
 
       procedure onMouseDown(const mMouse:TSDL_MouseButtonEvent);
       procedure onMouseMove(const mMouse:TSDL_MouseMotionEvent);
@@ -42,6 +43,11 @@ var
 implementation
 { TMainApp }
 
+
+procedure TMainApp.ShowPheromsClick(sender: TArea;const  mMouse: TSDL_MouseButtonEvent);
+begin
+  cfg.debugPheromones :=  gui.checkPheroms.Checked;
+end;
 
 procedure TMainApp.Start;
 begin
@@ -80,6 +86,8 @@ begin
   sdl.onKeyUp := onKeyUp;
   gui := TAppGui.create;
   gui.init;
+  gui.checkPheroms.OnMouseClick  := ShowPheromsClick;
+//  gui.checkPheroms.OnMouseClick := Show
 
   sdl.OnMouseDown := onMouseDown;
   sdl.OnMouseUp := onMouseUp;
@@ -104,7 +112,7 @@ begin
   gui.lblNumAnts.Text := 'Ants: '+ IntToStr( sim.ants.items.Count  );
 
 
-  SDL_Delay(1);
+  SDL_Delay(0);
 end;
 
 procedure TMainApp.draw;
@@ -164,6 +172,7 @@ end;
 
 procedure TMainApp.onMouseWheel(const mMouse: TSDL_MouseWheelEvent);
 begin
+  SDL_GetMouseState(@cam.zoomOrigin.x, @cam.zoomOrigin.y);
   cam.zoomInc( mMouse.y/10 );
 end;
 
