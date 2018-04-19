@@ -21,7 +21,7 @@ type
       moveBtn  :TMoveButtons;
       gui :TAppGui;
 
-      procedure screenClick(x, y:integer);
+      procedure screenClick(x, y:integer; move:boolean);
 
       procedure onMouseDown(const mMouse:TSDL_MouseButtonEvent);
       procedure onMouseMove(const mMouse:TSDL_MouseMotionEvent);
@@ -75,7 +75,7 @@ begin
   SDL_RenderGetScale( sdl.rend, @cam.appScale.x, @cam.appScale.y);
   cam.x := 20;
   cam.y := 10;
-  cam.zoom := 2;
+  cam.zoom := 1;
 
   sdl.onKeyUp := onKeyUp;
   gui := TAppGui.create;
@@ -89,12 +89,15 @@ begin
 end;
 
 procedure TMainApp.update;
-var j:integer;
+var
+  j:integer;
+  moveStep :integer;
 begin
-  if moveBtn.left then cam.x := cam.x + 5;
-  if moveBtn.right then cam.x := cam.x - 5;
-  if moveBtn.up then cam.y := cam.y + 5;
-  if moveBtn.down then cam.y := cam.y - 5;
+  moveStep := round( 5 / cam.zoom / cam.appScale.x );
+  if moveBtn.left then cam.x := cam.x + moveStep;
+  if moveBtn.right then cam.x := cam.x - moveStep;
+  if moveBtn.up then cam.y := cam.y + moveStep;
+  if moveBtn.down then cam.y := cam.y - moveStep;
 
   sim.update;
   gui.lblFPS.Text :=  'FPS: '+ IntToStr( sdl.FPS ) ;
@@ -142,7 +145,7 @@ procedure TMainApp.onMouseDown(const mMouse: TSDL_MouseButtonEvent);
 begin
   if not gui.screen.Consume_MouseButton(mMouse) then
   begin
-    screenClick(mMouse.x, mMouse.y);
+    screenClick(mMouse.x, mMouse.y, false);
   end;
 end;
 
@@ -150,7 +153,7 @@ procedure TMainApp.onMouseMove(const mMouse: TSDL_MouseMotionEvent);
 begin
   if not gui.screen.Consume_MouseMove(mMouse) then
   begin
-    if (mMouse.state and SDL_BUTTON_LMASK)>0 then screenClick(mMouse.x, mMouse.y);
+    if (mMouse.state and SDL_BUTTON_LMASK)>0 then screenClick(mMouse.x, mMouse.y, true);
   end;
 end;
 
@@ -164,7 +167,7 @@ begin
   cam.zoomInc( mMouse.y/10 );
 end;
 
-procedure TMainApp.screenClick(x, y: integer);
+procedure TMainApp.screenClick(x, y: integer; move:boolean);
 var
   posg :TVec2di;
   posw :TVec2d;
@@ -176,10 +179,11 @@ begin
   else
   if  gui.radioTool.SelectedText='food' then  sim.map.SetCell(posg.x, posg.y, ctFood)
   else
-  if  gui.radioTool.SelectedText='cave' then  sim.map.SetCell(posg.x, posg.y, ctCave)
+  if  (gui.radioTool.SelectedText='cave') and not move then  sim.map.SetCell(posg.x, posg.y, ctCave)
+  else  
+    if  gui.radioTool.SelectedText='grass' then  sim.map.SetCell(posg.x, posg.y, ctGrass)
   else
   if  gui.radioTool.SelectedText='remove' then  sim.map.RemoveCell(posg.x, posg.y);
-
 end;
 
 procedure TMainApp.Finalize;

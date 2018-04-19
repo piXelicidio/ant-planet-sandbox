@@ -76,16 +76,16 @@ initialization
     numAnts := 11000;
     numDebugAnts := 3;
     antMaxSpeed := 1.2;
-    antErratic := 0.18;
+    antErratic := 0.12;
     antAccel := 0.1;
     antRadialScanNum := 16;
-    antLogicFrameSkip := 3;   //value to skip ants from checking the pheromones path algorithm
-    mapW := 30;
-    mapH := 24;
+    antLogicFrameSkip := 1;   //value to skip ants from checking the pheromones path algorithm
+    mapW := 50;
+    mapH := 30;
     mapCellSize := 64;
     debugPheromones := false;
     camMaxZoom := 2;
-    camMinZoom := 0.5;
+    camMinZoom := 0.2;
   end;
 
   frameTimer := TFrameTimer.create;

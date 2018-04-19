@@ -82,7 +82,7 @@ var
   ant :PAnt;
   newGpos :TVec2di;
   newGrid, oldGrid :PMapData;
-begin
+begin     //TODO: something fishy here hapening with GRASS that is not implemented yet
   for i := 0 to ants.items.Count-1 do
   begin
     ant := ants.items.List[i];
@@ -259,7 +259,7 @@ begin
       case cellType of
         ctBlock: passLevel := CFG_passLevelBlock;
         ctGround:;//nothing needed;
-        ctGrass: cell := cellFactory.getGrass;
+        ctGrass: cell := cellFactory.getGrass;    //TODO: grass has a problem dude
         ctFood: cell := cellFactory.newFood;
         ctCave: cell := cellFactory.getCave;
       end;

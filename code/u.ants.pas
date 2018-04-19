@@ -222,11 +222,11 @@ begin
     new(ant);
     ant.pos.x :=100+ random*400;
     ant.pos.y :=100+ random*300;
-    {using the hiddenCell force the map to detect first overlappings without special validations}
-    {ants will appear to come always form a different grid cell than the first one. }
+    
     ant.gridPos.X := 0;
     ant.gridPos.y := 0;
     ant.speed := cfg.antMaxSpeed * 0.1;
+    ant.friction := 1;
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
     ant.ListRefIdx[listRef] :=  items.add(ant);
@@ -257,6 +257,7 @@ begin
     ant := items.list[i];
     ant.storePosition(ant.pos);
     ant.rotate( random*cfg.antErratic - cfg.antErratic / 2);
+    ant.speed := ant.speed * ant.friction;
     ant.wishPos := ant.pos + ant.dir * ant.speed;
     ant.speed := ant.speed + cfg.antAccel;
     if ant.speed > cfg.antMaxSpeed then ant.speed := cfg.antMaxSpeed;

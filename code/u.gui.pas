@@ -67,7 +67,7 @@ begin
   strs.Add('grass');
   strs.Add('cave');
   strs.Add('food');
-  strs.Add('portal');
+//  strs.Add('portal');
   strs.add('remove');
   radioTool := TGuisoRadioGroup.create(strs, fMainPanel.width-20, 30);
   fMainPanel.addChildBellow(radioTool, lblNumAnts);
