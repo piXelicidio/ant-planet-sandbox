@@ -91,7 +91,6 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
         <DCC_RangeChecking>true</DCC_RangeChecking>
         <DCC_ExeOutput>.\bin\$(Platform)</DCC_ExeOutput>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>

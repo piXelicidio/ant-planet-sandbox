@@ -73,9 +73,9 @@ initialization
     windowW := 1280;
     windowH := 720;
     screenLogicalHight := 1080;
-    numAnts := 3300;
+    numAnts := 18000;
     numDebugAnts := 3;
-    antMaxSpeed := 1.2;
+    antMaxSpeed := 2.2;
     antErratic := 0.12;
     antAccel := 0.1;
     antRadialScanNum := 16;

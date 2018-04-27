@@ -63,6 +63,8 @@ begin
   sdl.cfg.defaultFontSize := 12;
   sdl.showDriversInfo;
   sdl.cfg.RenderDriverIndex := -1;
+  sdl.setFixedFPS(60);
+  sdl.ShowFrameProfiler := true;
   //before this point can't call SDL api, after this point do it on Load or Update.
   sdl.Start;
 end;
@@ -112,7 +114,7 @@ begin
   gui.lblNumAnts.Text := 'Ants: '+ IntToStr( sim.ants.items.Count  );
 
 
-  SDL_Delay(0);
+  SDL_Delay(1);
 end;
 
 procedure TMainApp.draw;
