@@ -61,7 +61,9 @@ begin
       if myInterestSeen.frameTime > ant.maxTimeSeen_MyTarget then
       begin
         ant.maxTimeSeen_MyTarget := myInterestSeen.frameTime;
-        ant.headTo( myInterestSeen.where);
+        //ant.headTo( myInterestSeen.where);
+        ant.dirWishTo( myInterestSeen.where );
+        ant.dirWishDuration := 150;
       end;
     end;
 

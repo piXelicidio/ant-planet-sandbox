@@ -18,7 +18,7 @@ type
   PAnt = ^TAnt;
   TAnt = record
     private
-      dir   : TVec2d;  //direction to go
+      dir     : TVec2d;  //actual direction its going to, affected by environment
       rot   : single;  //rotation equivalent to current direciton;
       PastPositions :array[0..CFG_antPositionMemorySize-1] of TVec2d;
       oldestPositionIndex :integer;
@@ -27,6 +27,8 @@ type
       procedure storePosition(const vec :TVec2d );
       procedure resetPositionMemory(const vec :TVec2d );
     public
+      dirWish : TVec2d;  //direction ant want to go
+      dirWishDuration :integer; //wish will expire after many frames.
       pos :TVec2d;  //position
       wishPos :TVec2d; //next position it wants to go, map has final word
       lastPos :TVec2d; //previous position;
@@ -49,6 +51,7 @@ type
       procedure setRot( rad :single );
       procedure rotate( rad :single );
       procedure headTo(const targetPos :TVec2d );
+      procedure dirWishTo(const targetPos :TVec2d);
       procedure taskFound( interest :TAntInterests );
       property direction:TVec2d read dir;
   end;
@@ -117,6 +120,7 @@ begin
     x1 := Floor( ant.pos.x ) + cam.x;
     y1 := Floor( ant.pos.y ) + cam.y;
     sdl.drawSprite(antImg, x1, y1, ant.rot * 180 / pi);
+    //sdl.drawSprite(antImg, x1, y1);
     if ant.cargo  then
     begin
       sdl.setColor(255,255,25);
@@ -182,11 +186,11 @@ begin
     if passLevelFunc( ant.wishPos.x, ant.wishPos.y) <= currLevel then
     begin
       //can walk, but lets try object avoidance first:
-      vTest := ant.pos + ( fRadial.getDirByIdx(idx)^ ) * (cfg.mapCellSize*0.6) ;
+      vTest := ant.pos + ( fRadial.getDirByIdx(idx)^ ) * (cfg.mapCellSize*0.9) ;
       if passLevelFunc(vTest.x, vTest.y) > currLevel then
       begin
         //something ahead, try to avoid, left or right?
-        vTest := ant.pos + ( fRadial.getDirByIdx(idx+1)^ ) * (cfg.mapCellSize*0.6) ;
+        vTest := ant.pos + ( fRadial.getDirByIdx(idx+1)^ ) * (cfg.mapCellSize*0.9) ;
         if passLevelFunc(vTest.x, vTest.y) <= currLevel then
         begin
           //free direction, turn that way;
@@ -194,12 +198,12 @@ begin
           //or randomly-maybe the other way if free too.
           if random(2)=1 then
           begin
-            vTest := ant.pos + ( fRadial.getDirByIdx(idx-1)^ ) * (cfg.mapCellSize*0.6);
+            vTest := ant.pos + ( fRadial.getDirByIdx(idx-1)^ ) * (cfg.mapCellSize*0.9);
             if passLevelFunc(vTest.x, vTest.y) <= currLevel then ant.setRot(fRadial.IdxToAngle(idx-2));
           end;
         end else
         begin
-          vTest := ant.pos + ( fRadial.getDirByIdx(idx-1)^ ) * (cfg.mapCellSize*0.6);
+          vTest := ant.pos + ( fRadial.getDirByIdx(idx-1)^ ) * (cfg.mapCellSize*0.9);
           if passLevelFunc(vTest.x, vTest.y) <= currLevel then ant.setRot(fRadial.IdxToAngle(idx-2));
         end;
       end;
@@ -276,6 +280,11 @@ begin
     ant := items.list[i];
     ant.storePosition(ant.pos);
     ant.rotate( random*cfg.antErratic - cfg.antErratic / 2);
+    if ant.dirWishDuration>0 then
+    begin
+      dec(ant.dirWishDuration);
+      if (ant.dirWishDuration mod 3) = 0 then ant.setDirAndNormalize( ant.dir * 2 + ant.dirWish);
+    end;
     ant.speed := ant.speed * ant.friction;
     ant.wishPos := ant.pos + ant.dir * ant.speed;
     ant.speed := ant.speed + cfg.antAccel;
@@ -284,6 +293,23 @@ begin
 end;
 
 { TAnt }
+
+procedure TAnt.dirWishTo(const targetPos: TVec2d);
+var
+  delta :TVec2d;
+  len :single;
+begin
+  delta := targetPos - pos;
+  len := delta.len;
+  if len>0 then
+  begin
+    //normalizing in place
+    delta.x := delta.x / len;
+    delta.y := delta.y / len;
+    dirWish := delta
+  end;
+  //ant.lastTimeUpdatePath = frameTimer.time   ?? from lua ants
+end;
 
 procedure TAnt.headTo(const targetPos: TVec2d);
 var
