@@ -286,7 +286,7 @@ begin
       if (ant.dirWishDuration mod 3) = 0 then ant.setDirAndNormalize( ant.dir * 2 + ant.dirWish);
     end;
     ant.speed := ant.speed * ant.friction;
-    ant.wishPos := ant.pos + ant.dir * ant.speed;
+    ant.wishPos := ant.pos + ant.dir * ant.speed ;
     ant.speed := ant.speed + cfg.antAccel;
     if ant.speed > cfg.antMaxSpeed then ant.speed := cfg.antMaxSpeed;
   end;
