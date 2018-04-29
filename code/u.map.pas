@@ -149,7 +149,7 @@ begin
             begin
               sdl.setColor(gradient,255-gradient,0);
               target := gdata.pheromInfo.seen[interest].where.floored;
-              SDL_RenderDrawLine(sdl.rend, rect.x + rect.w div 2, rect.y + rect.h div 2, target.x, target.y );
+              SDL_RenderDrawLine(sdl.rend, rect.x + rect.w div 2,  rect.y + rect.h div 2, cam.x+ target.x, cam.y+ target.y );
             end;
           end;
       end;
@@ -201,7 +201,7 @@ begin
     setLength(grid[i], fH);
     for j := 0 to fH-1 do
     begin
-      if random > 0.06 then grid[i,j].passLevel := CFG_passLevelGround
+      if random > 0.02 then grid[i,j].passLevel := CFG_passLevelGround
                        else grid[i,j].passLevel := CFG_passLevelBlock  ;
 
       //borders obligatory

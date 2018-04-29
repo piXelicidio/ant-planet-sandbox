@@ -22,6 +22,7 @@ type
       gui :TAppGui;
 
       procedure screenClick(x, y:integer; move:boolean);
+      procedure ShowPheromsClick( sender:TArea;const mMouse: TSDL_MouseButtonEvent);
 
       procedure onMouseDown(const mMouse:TSDL_MouseButtonEvent);
       procedure onMouseMove(const mMouse:TSDL_MouseMotionEvent);
@@ -43,6 +44,11 @@ implementation
 { TMainApp }
 
 
+procedure TMainApp.ShowPheromsClick(sender: TArea;const  mMouse: TSDL_MouseButtonEvent);
+begin
+  cfg.debugPheromones :=  gui.checkPheroms.Checked;
+end;
+
 procedure TMainApp.Start;
 begin
   sdl.onLoad := load;
@@ -57,6 +63,8 @@ begin
   sdl.cfg.defaultFontSize := 12;
   sdl.showDriversInfo;
   sdl.cfg.RenderDriverIndex := -1;
+  sdl.setFixedFPS(60);
+  sdl.ShowFrameProfiler := true;
   //before this point can't call SDL api, after this point do it on Load or Update.
   sdl.Start;
 end;
@@ -80,6 +88,8 @@ begin
   sdl.onKeyUp := onKeyUp;
   gui := TAppGui.create;
   gui.init;
+  gui.checkPheroms.OnMouseClick  := ShowPheromsClick;
+//  gui.checkPheroms.OnMouseClick := Show
 
   sdl.OnMouseDown := onMouseDown;
   sdl.OnMouseUp := onMouseUp;
@@ -164,6 +174,7 @@ end;
 
 procedure TMainApp.onMouseWheel(const mMouse: TSDL_MouseWheelEvent);
 begin
+  SDL_GetMouseState(@cam.zoomOrigin.x, @cam.zoomOrigin.y);
   cam.zoomInc( mMouse.y/10 );
 end;
 

@@ -73,14 +73,14 @@ initialization
     windowW := 1280;
     windowH := 720;
     screenLogicalHight := 1080;
-    numAnts := 11000;
+    numAnts := 6500;
     numDebugAnts := 3;
-    antMaxSpeed := 1.2;
+    antMaxSpeed := 2.2;
     antErratic := 0.12;
     antAccel := 0.1;
     antRadialScanNum := 16;
     antLogicFrameSkip := 1;   //value to skip ants from checking the pheromones path algorithm
-    mapW := 50;
+    mapW := 40;
     mapH := 30;
     mapCellSize := 64;
     debugPheromones := false;
