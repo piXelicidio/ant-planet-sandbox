@@ -1,4 +1,4 @@
-program HormigasLocas;
+program AntPlanet_sb;
 {$IFDEF DEBUG}
 {$APPTYPE CONSOLE}
 {$ENDIF}

@@ -1,5 +1,5 @@
-# hormigas-locas
-A modern Delphi remake of my Ant Colony Simulation 
+# Ant Planet: sandbox mode
+Ant colony sandbox relaxing game without rules and open source.
 
 Last Screenshot:
 
@@ -7,9 +7,7 @@ Last Screenshot:
 
 ## dependencies:
 
-Pascal headers: https://github.com/piXelicidio/Pascal-SDL-2-Headers
-SDL2, SDL2_image, SDL2_tff dlls, included for convenience.
-px.vec2d.pas from: https://github.com/piXelicidio/pxUnits
-Units for SDL2 from: https://github.com/piXelicidio/px.sdl
+None :) Compile and run!
+
 
 
