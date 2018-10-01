@@ -8,6 +8,9 @@ type
 
 
   CCell = class of TCell;
+  ///<summary>Cells of the map, a block, food, grass... They know and are responsible of interacting with ants. Ants don't know about cells.
+  ///  New TCell descendants should know how to affect Ants without the need of updating Ants code.
+  ///</summary>
   TCell = class
     private
       fCellType :TCellTypes;

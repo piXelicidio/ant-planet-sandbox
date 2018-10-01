@@ -1,5 +1,6 @@
 unit u.ants;
-{our Ants, let's try Data Oriented Design here... herejía }
+{Our Ants, let's try Data Oriented Design here... herejía }
+
 interface
 
 uses
@@ -16,6 +17,7 @@ type
   TListRef = (lrIgnore, lrOwner, lrGrid);
 
   PAnt = ^TAnt;
+  ///<summary>Our Ant-Data, a record with basic methods. Most important processings are done in TAntPack</summary>
   TAnt = record
     private
       dir     : TVec2d;  //actual direction its going to, affected by environment
@@ -39,7 +41,7 @@ type
       isWalkingOver :TCellTypes;
       cargo :boolean;
 
-      LastTimeSeen :array[TAntInterests] of integer;
+      LastTimeSeen :array[TAntInterests] of integer;   //Last time seen each ant interests
       maxTimeSeen_MyTarget :integer;
       lookingFor :TAntInterests;
       comingFrom :TAntInterests;
@@ -56,11 +58,13 @@ type
       property direction:TVec2d read dir;
   end;
 
-  //A list of Ants, procedures and functions most time acts over all ants
+  ///<summary> A list of Ants, procedures and functions most time acts over all ants. </summary>
   TAntList = TList<PAnt>;
 
   TPassLevelFunc = function( x, y: single):integer of object;
 
+  ///<summary> A data-oriented class that deal with pack of ants, doing updates, draws and other processing for many ants in loops. </summary>
+  ///<remarks> Can work also with subset of ants from other lists, setting antOwner to false and setting the items:TAntLists with PAnt references  </remarks>
   TAntPack = class
     private
       fRadial :TRadial;
@@ -72,9 +76,11 @@ type
       constructor Create;
       destructor Destroy;override;
       procedure Init;
-      procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore  );  //create and init a bunch of ants, and add them to the list
+      ///<summary>create and init a bunch of ants, and add them to the list.</summary>
+      procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore  );
       procedure draw;
       procedure update;
+      ///<summary>Solve ants collisions, avoid obstacles, allow or fix movement</summary>
       procedure solveCollisions( passLevelFunc: TPassLevelFunc );
       procedure disposeAll;
   end;
@@ -162,7 +168,6 @@ begin
   sdl.setCenterToMiddle(fFoodCargoImg);
 end;
 
-{Solve ants collisions, avoid obstacles, allow or fix movement}
 procedure TAntPack.solveCollisions(passLevelFunc: TPassLevelfunc);
   var
   i: Integer;

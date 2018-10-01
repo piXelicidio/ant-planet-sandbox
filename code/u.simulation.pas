@@ -9,6 +9,9 @@ interface
 
 
 type
+  ///<summary>Main class that dictates whats happend in the world of ants.
+  /// Creates and contains the Ants and map.
+  ///</summary>
   TSimulation = class
     public
       ants  :TAntPack;
@@ -18,6 +21,7 @@ type
       procedure init;
       procedure finalize;
       procedure update;
+      ///<<summary>The algorithm based on pheromones that does the magic</summary>
       procedure phero_algorithm;
       procedure draw;
   end;

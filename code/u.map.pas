@@ -31,6 +31,7 @@ type
     cell :TCell;
   end;
 
+  ///<summay> The Map. A 2D array (grid) that keeps all the TMapData and methods to deal with it.</summary>
   TMap = class
   private
     fW  :integer;
@@ -206,7 +207,7 @@ begin
 
       //borders obligatory
       if (i = 0) or (i = fW-1) or (j=0) or (j = fH-1) then grid[i,j].passLevel := CFG_passLevelOut;
-      
+
 
 
       for interest := low(TAntInterests) to high(TAntInterests) do
