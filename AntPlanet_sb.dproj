@@ -91,7 +91,6 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="..\UnitsLib\pxsdl\px.sdl.pas"/>
         <DCCReference Include="u.MainApp.pas"/>
         <DCCReference Include="code\u.ants.pas"/>
         <DCCReference Include="code\u.simulation.pas"/>
@@ -180,6 +179,12 @@
                 </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgsqlite3.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="bin\Win32\AntPlanet_sb.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>AntPlanet_sb.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

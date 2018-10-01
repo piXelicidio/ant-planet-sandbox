@@ -32,12 +32,20 @@ implementation
 { TSimulation }
 
 procedure TSimulation.init;
+var
+  i:integer;
 begin
   randomize;
   cellFactory.init;
   map.init;
   ants.Init;
   ants.addNewAndInit(cfg.numAnts, lrOwner);
+  //add all ants to 0,0 grid array; this avoid future validations
+  for i := 0 to ants.items.Count-1 do
+  begin
+    map.grid[0,0].antsArray_add( ants.items.List[i] );
+  end;
+
 end;
 
 procedure TSimulation.phero_algorithm;

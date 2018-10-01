@@ -47,7 +47,7 @@ type
       comingFrom :TAntInterests;
       oldestPositionStored :PVec2D;
 
-      ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove
+      ListRefIdx :array[TListRef] of integer;    //to store Index locations in lists or arrays, needed for fast remove, little weird, dunno how make it better
       procedure setDir( const aNormalizedVec :TVec2d );
       procedure setDirAndNormalize( const unormalizedVec :TVec2d );
       procedure setRot( rad :single );
@@ -58,7 +58,6 @@ type
       property direction:TVec2d read dir;
   end;
 
-  ///<summary> A list of Ants, procedures and functions most time acts over all ants. </summary>
   TAntList = TList<PAnt>;
 
   TPassLevelFunc = function( x, y: single):integer of object;
@@ -250,7 +249,8 @@ begin
     new(ant);
     ant.pos.x :=100+ random*400;
     ant.pos.y :=100+ random*300;
-    
+    //all ants start at non-accessible grid Pos 0,0;
+    //so on the first step they will fall in a NEW grid position.
     ant.gridPos.X := 0;
     ant.gridPos.y := 0;
     ant.speed := cfg.antMaxSpeed * 0.1;

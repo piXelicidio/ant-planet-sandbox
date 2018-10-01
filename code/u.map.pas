@@ -29,6 +29,10 @@ type
     passLevel :integer;           //they can't pass to a higer level Obstacle
     pheromInfo :TPheromInfo;
     cell :TCell;
+    ants :array of PAnt;         //ants passing by; array may be larger, see antsCount
+    antsCount :integer;          //actual ants in ants array
+    procedure antsArray_add(  ant :PAnt );
+    procedure antsArray_delete( ant :PAnt );
   end;
 
   ///<summay> The Map. A 2D array (grid) that keeps all the TMapData and methods to deal with it.</summary>
@@ -83,7 +87,7 @@ var
   ant :PAnt;
   newGpos :TVec2di;
   newGrid, oldGrid :PMapData;
-begin     //TODO: something fishy here hapening with GRASS that is not implemented yet
+begin
   for i := 0 to ants.items.Count-1 do
   begin
     ant := ants.items.List[i];
@@ -102,6 +106,9 @@ begin     //TODO: something fishy here hapening with GRASS that is not implement
       begin
         if newGrid.passLevel = CFG_passLevelGround then ant.isWalkingOver := ctGround else ant.isWalkingOver := ctBlock;
       end;
+      //update the grid arrays of ants
+      grid[ ant.gridPos.x, ant.gridPos.y ].antsArray_delete( ant );
+      grid[ newGpos.x, newGPos.y ].antsArray_add( ant );
       //update ant with new gpos
       ant.gridPos := newGpos;
     end;
@@ -154,6 +161,10 @@ begin
             end;
           end;
       end;
+
+      //debug antCount / capacity
+      sdl.drawText(IntToStr(gdata.antsCount) + '/' + IntToStr(Length(gdata.ants)), rect.x, rect.y)
+
     end;
 end;
 
@@ -221,6 +232,7 @@ begin
 
       //grid[i,j].pheromInfo.seen[ctFood].frameTime := -1;
       grid[i,j].cell := nil;
+      setlength(grid[i,j].ants, 8);
     end;
   end;
 
@@ -245,6 +257,7 @@ begin
     passLevel := CFG_passLevelGround;
     if cell<>nil then
     begin
+      //TODO: needs end overlaps with potential ants somewhere
       if cell.NeedDestroyWhenRemoved then cell.Free;
       cell := nil;
     end;
@@ -260,7 +273,7 @@ begin
       case cellType of
         ctBlock: passLevel := CFG_passLevelBlock;
         ctGround:;//nothing needed;
-        ctGrass: cell := cellFactory.getGrass;    //TODO: grass has a problem dude
+        ctGrass: cell := cellFactory.getGrass;
         ctFood: cell := cellFactory.newFood;
         ctCave: cell := cellFactory.getCave;
       end;
@@ -276,6 +289,40 @@ function TMap.WorldToGrid(vec: TVec2d): TVec2di;
 begin
   result.x := floor( vec.x / cfg.mapCellSize );
   result.y := floor( vec.y / cfg.mapCellSize );
+end;
+
+
+{ TMapData }
+
+procedure TMapData.antsArray_add(ant: PAnt);
+begin
+  //need resize?
+  if length(ants) <= antsCount then setLength(ants, length(ants)*2);
+  ants[antsCount] := ant;
+  ant.ListRefIdx[lrGrid] := antsCount;  //store the index
+  inc(antsCount);
+end;
+
+procedure TMapData.antsArray_delete(ant: PAnt);
+var
+  tempAnt :PAnt;
+begin
+  //fastest delete; set the current ant item with the value from the last ant in the array (this could kaput if we are not careful)
+
+  {$IFDEF DEBUG}
+  //unnecesary error checking
+  if antsCount<=0 then sdl.print('nothing to delete here');
+  if ants[ ant.ListRefIdx[lrGrid] ] <> ant then sdl.print('deleting wrong ant');
+  {$ENDIF}
+
+  tempAnt := ants[ antsCount-1 ];
+  ants[ ant.ListRefIdx[lrGrid] ] := tempAnt;
+  tempAnt.ListRefIdx[lrGrid] := ant.ListRefIdx[lrGrid];
+  antsCount := antsCount - 1;
+
+  //resize down array... Only if it is less than half empty, or never if you like disable next line
+  if (antsCount < (length(ants) div 2)) and (length(ants)>8) then setLength(ants, length(ants) div 2);
+
 end;
 
 end.

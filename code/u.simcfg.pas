@@ -73,7 +73,7 @@ initialization
     windowW := 1280;
     windowH := 720;
     screenLogicalHight := 1080;
-    numAnts := 6500;
+    numAnts := 20000;
     numDebugAnts := 3;
     antMaxSpeed := 2.2;
     antErratic := 0.12;
