@@ -82,7 +82,7 @@ var
 begin
   {Load and initialize things here, SDL initializaiton is already done at this point, SDL calls are ok now}
   sim.init;
-  sdl.fullScreen := true;
+  sdl.fullScreen := false;
   logical.x := (cfg.screenLogicalHight * sdl.window.w)  div sdl.window.h;
   logical.y := cfg.screenLogicalHight;
   sdl.LogicalSize := logical;
@@ -164,16 +164,32 @@ begin
   //check if the UI consumes the interaction first
   if not gui.screen.Consume_MouseButton(mMouse) then
   begin
-    doScreenClick(mMouse.x, mMouse.y, false);
+    case mMouse.button of
+      SDL_BUTTON_LEFT: doScreenClick(mMouse.x, mMouse.y, false);
+      SDL_BUTTON_RIGHT: ;
+    end;
   end;
 end;
 
 procedure TMainApp.onMouseMove(const mMouse: TSDL_MouseMotionEvent);
+var
+  moveStep :integer;
 begin
   //check if the UI consumes the interaction first
   if not gui.screen.Consume_MouseMove(mMouse) then
   begin
+    //Notice that on MouseMove the mMouse.state is bitmask of the buttons,
+    //while on MouseDown mMouse.state is the state of pressed or released
+    //see: https://wiki.libsdl.org/SDL_MouseMotionEvent
     if (mMouse.state and SDL_BUTTON_LMASK)>0 then doScreenClick(mMouse.x, mMouse.y, true);
+
+    if (mMouse.state and SDL_BUTTON_RMASK)>0 then
+    begin {panning}
+      cam.x := cam.x + round( mMouse.xrel / cam.zoom / cam.appScale.x );
+      cam.y := cam.y + round( mMouse.yrel / cam.zoom / cam.appScale.y );
+    end;
+
+
   end;
 end;
 

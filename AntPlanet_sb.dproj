@@ -75,6 +75,7 @@
         <DCC_RangeChecking>true</DCC_RangeChecking>
         <DCC_ExeOutput>.\bin\$(Platform)</DCC_ExeOutput>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
+        <DCC_DebugDCUs>false</DCC_DebugDCUs>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -543,6 +544,7 @@
             <Platforms>
                 <Platform value="Win32">True</Platform>
             </Platforms>
+            <ModelSupport>False</ModelSupport>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>
     </ProjectExtensions>
