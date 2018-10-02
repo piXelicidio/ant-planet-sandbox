@@ -9,6 +9,9 @@ interface
 
 
 type
+  ///<summary>Main class that dictates whats happend in the world of ants.
+  /// Creates and contains the Ants and map.
+  ///</summary>
   TSimulation = class
     public
       ants  :TAntPack;
@@ -18,6 +21,7 @@ type
       procedure init;
       procedure finalize;
       procedure update;
+      ///<<summary>The algorithm based on pheromones that does the magic</summary>
       procedure phero_algorithm;
       procedure draw;
   end;
@@ -28,12 +32,20 @@ implementation
 { TSimulation }
 
 procedure TSimulation.init;
+var
+  i:integer;
 begin
   randomize;
   cellFactory.init;
   map.init;
   ants.Init;
   ants.addNewAndInit(cfg.numAnts, lrOwner);
+  //add all ants to 0,0 grid array; this avoid future validations
+  for i := 0 to ants.items.Count-1 do
+  begin
+    map.grid[0,0].antsArray_add( ants.items.List[i] );
+  end;
+
 end;
 
 procedure TSimulation.phero_algorithm;

@@ -12,16 +12,18 @@ interface
   u.simcfg,
   u.map,
   u.ants,
-  u.gui;
+  u.gui ;
 
 type
-  {Main Application}
+  ///<summary>Main Application class. Is created once at the Initialization section.</summary>.
   TMainApp = class
     public
       moveBtn  :TMoveButtons;
       gui :TAppGui;
 
-      procedure screenClick(x, y:integer; move:boolean);
+      ///<summary>Process a click on the map to interact with it.</summary>
+      procedure doScreenClick(x, y:integer; move:boolean);
+      ///<summary>When the checkbox for showing pheromones is clicked</summary>
       procedure ShowPheromsClick( sender:TArea;const mMouse: TSDL_MouseButtonEvent);
 
       procedure onMouseDown(const mMouse:TSDL_MouseButtonEvent);
@@ -31,10 +33,13 @@ type
       procedure onKeyUp(const key :TSDL_KeyboardEvent );
       procedure onKeyDown(const key :TSDL_KeyboardEvent );
 
+      ///<summary>Everthing starts here, and this procuedure doesn't exits until the game has ended</summary>
+      procedure Start;
+
       procedure load;
       procedure update;
       procedure draw;
-      procedure Start;
+
       procedure Finalize;
   end;
 
@@ -43,7 +48,7 @@ var
 implementation
 { TMainApp }
 
-
+{When the checkbox for showing pheromones is clicked}
 procedure TMainApp.ShowPheromsClick(sender: TArea;const  mMouse: TSDL_MouseButtonEvent);
 begin
   cfg.debugPheromones :=  gui.checkPheroms.Checked;
@@ -59,13 +64,14 @@ begin
   sdl.cfg.window.w := cfg.windowW;
   sdl.cfg.window.h := cfg.windowH;
   sdl.cfg.window.fullScreenType := SDL_WINDOW_FULLSCREEN_DESKTOP;
-  sdl.cfg.RenderFlags := SDL_RENDERER_ACCELERATED; //<--- while develop
+  sdl.cfg.RenderFlags := SDL_RENDERER_ACCELERATED;
   sdl.cfg.defaultFontSize := 12;
   sdl.showDriversInfo;
   sdl.cfg.RenderDriverIndex := -1;
   sdl.setFixedFPS(60);
   sdl.ShowFrameProfiler := true;
   //before this point can't call SDL api, after this point do it on Load or Update.
+  //The main loop is inside sdl.start
   sdl.Start;
 end;
 
@@ -74,9 +80,9 @@ var
   logical :TSDL_Point;
   f :PFloat;
 begin
-
+  {Load and initialize things here, SDL initializaiton is already done at this point, SDL calls are ok now}
   sim.init;
-  sdl.fullScreen := true;
+  sdl.fullScreen := false;
   logical.x := (cfg.screenLogicalHight * sdl.window.w)  div sdl.window.h;
   logical.y := cfg.screenLogicalHight;
   sdl.LogicalSize := logical;
@@ -86,6 +92,7 @@ begin
   cam.zoom := 1;
 
   sdl.onKeyUp := onKeyUp;
+  //creating the user interface
   gui := TAppGui.create;
   gui.init;
   gui.checkPheroms.OnMouseClick  := ShowPheromsClick;
@@ -114,7 +121,7 @@ begin
   gui.lblNumAnts.Text := 'Ants: '+ IntToStr( sim.ants.items.Count  );
 
 
-  SDL_Delay(1);
+//  SDL_Delay(1);
 end;
 
 procedure TMainApp.draw;
@@ -123,6 +130,7 @@ begin
   SDL_RenderClear(sdl.rend); //TODO: can be better without cls
   SDL_RenderSetScale( sdl.rend, cam.appScale.x * cam.zoom, cam.appScale.y * cam.zoom);
   sim.draw;
+  //restoring the scale to 1:1 for drawing the UI
   SDL_RenderSetScale( sdl.rend, 1, 1);
   // SDL_RenderSetScale(sdl.rend, appScale.x, appScale.y); //for highdef displays..
   gui.screen.draw;
@@ -153,17 +161,35 @@ end;
 
 procedure TMainApp.onMouseDown(const mMouse: TSDL_MouseButtonEvent);
 begin
+  //check if the UI consumes the interaction first
   if not gui.screen.Consume_MouseButton(mMouse) then
   begin
-    screenClick(mMouse.x, mMouse.y, false);
+    case mMouse.button of
+      SDL_BUTTON_LEFT: doScreenClick(mMouse.x, mMouse.y, false);
+      SDL_BUTTON_RIGHT: ;
+    end;
   end;
 end;
 
 procedure TMainApp.onMouseMove(const mMouse: TSDL_MouseMotionEvent);
+var
+  moveStep :integer;
 begin
+  //check if the UI consumes the interaction first
   if not gui.screen.Consume_MouseMove(mMouse) then
   begin
-    if (mMouse.state and SDL_BUTTON_LMASK)>0 then screenClick(mMouse.x, mMouse.y, true);
+    //Notice that on MouseMove the mMouse.state is bitmask of the buttons,
+    //while on MouseDown mMouse.state is the state of pressed or released
+    //see: https://wiki.libsdl.org/SDL_MouseMotionEvent
+    if (mMouse.state and SDL_BUTTON_LMASK)>0 then doScreenClick(mMouse.x, mMouse.y, true);
+
+    if (mMouse.state and SDL_BUTTON_MMASK)>0 then
+    begin {panning}
+      cam.x := cam.x + round( mMouse.xrel / cam.zoom / cam.appScale.x );
+      cam.y := cam.y + round( mMouse.yrel / cam.zoom / cam.appScale.y );
+    end;
+
+
   end;
 end;
 
@@ -178,7 +204,7 @@ begin
   cam.zoomInc( mMouse.y/10 );
 end;
 
-procedure TMainApp.screenClick(x, y: integer; move:boolean);
+procedure TMainApp.doScreenClick(x, y: integer; move:boolean);
 var
   posg :TVec2di;
   posw :TVec2d;
@@ -191,7 +217,7 @@ begin
   if  gui.radioTool.SelectedText='food' then  sim.map.SetCell(posg.x, posg.y, ctFood)
   else
   if  (gui.radioTool.SelectedText='cave') and not move then  sim.map.SetCell(posg.x, posg.y, ctCave)
-  else  
+  else
     if  gui.radioTool.SelectedText='grass' then  sim.map.SetCell(posg.x, posg.y, ctGrass)
   else
   if  gui.radioTool.SelectedText='remove' then  sim.map.RemoveCell(posg.x, posg.y);

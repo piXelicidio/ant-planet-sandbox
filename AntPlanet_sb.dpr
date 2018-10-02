@@ -10,7 +10,6 @@ uses
   sdl2,
   px.vec2d,
   system.math,
-  px.sdl in '..\UnitsLib\pxsdl\px.sdl.pas',
   u.MainApp in 'u.MainApp.pas',
   u.ants in 'code\u.ants.pas',
   u.simulation in 'code\u.simulation.pas',
