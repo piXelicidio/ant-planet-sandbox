@@ -163,8 +163,7 @@ begin
       end;
 
       //debug antCount / capacity
-      sdl.drawText(IntToStr(gdata.antsCount) + '/' + IntToStr(Length(gdata.ants)), rect.x, rect.y)
-
+      //sdl.drawText(IntToStr(gdata.antsCount) + '/' + IntToStr(Length(gdata.ants)), rect.x, rect.y);
     end;
 end;
 

@@ -183,7 +183,7 @@ begin
     //see: https://wiki.libsdl.org/SDL_MouseMotionEvent
     if (mMouse.state and SDL_BUTTON_LMASK)>0 then doScreenClick(mMouse.x, mMouse.y, true);
 
-    if (mMouse.state and SDL_BUTTON_RMASK)>0 then
+    if (mMouse.state and SDL_BUTTON_MMASK)>0 then
     begin {panning}
       cam.x := cam.x + round( mMouse.xrel / cam.zoom / cam.appScale.x );
       cam.y := cam.y + round( mMouse.yrel / cam.zoom / cam.appScale.y );
