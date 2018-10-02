@@ -250,6 +250,8 @@ end;
 
 
 procedure TMap.RemoveCell(xg, yg: integer);
+var
+  i:integer  ;
 begin
   if (xg>=1) and (xg<W-1) and (yg>=1) and (yg<H-1)  then
   with grid[xg,yg] do
@@ -258,6 +260,12 @@ begin
     if cell<>nil then
     begin
       //TODO: needs end overlaps with potential ants somewhere
+      //notify ants
+      for i := 0 to antsCount-1 do
+      begin
+        cell.endOverlap( ants[i] );
+      end;
+      //destroy
       if cell.NeedDestroyWhenRemoved then cell.Free;
       cell := nil;
     end;
@@ -265,11 +273,14 @@ begin
 end;
 
 procedure TMap.SetCell(xg, yg: integer; cellType: TCellTypes);
+var
+  i :integer;
 begin
   if (xg>=1) and (xg<W-1) and (yg>=1) and (yg<H-1)  then
   begin
     RemoveCell(xg,yg);
     with grid[xg, yg] do
+    begin
       case cellType of
         ctBlock: passLevel := CFG_passLevelBlock;
         ctGround:;//nothing needed;
@@ -277,6 +288,14 @@ begin
         ctFood: cell := cellFactory.newFood;
         ctCave: cell := cellFactory.getCave;
       end;
+      if cell<>nil then
+      begin
+        for i := 0 to antsCount-1 do
+        begin
+          cell.beginOverlap( ants[i] );
+        end;
+      end;
+    end;
   end;
 end;
 
