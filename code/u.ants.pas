@@ -82,6 +82,7 @@ type
       /// return in addedAnts a list of the just added ants
       ///</summary>
       procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore; const addedAnts :TAntList = nil  );
+      procedure removeAnt(ant:PAnt; listRef :TListRef);
       procedure draw;
       procedure update;
       ///<summary>Solve ants collisions, avoid obstacles, allow or fix movement</summary>
@@ -170,6 +171,26 @@ begin
   sdl.setCenterToMiddle(antImg);
   fFoodCargoImg := sdl.newSprite(sdl.loadTexture('images\foodCargo.png'));
   sdl.setCenterToMiddle(fFoodCargoImg);
+end;
+
+procedure TAntPack.removeAnt(ant: PAnt; listRef :TListRef);
+var
+  lastIdx, idx :integer;
+  tempAnt :PAnt;
+begin
+  idx := ant.ListRefIdx[listRef];
+  {$IFDEF DEBUG}
+  //unnecesary error checking
+  if idx>= items.count then sdl.print('Out of list  range, deleting ant.');
+    if items.list[idx ] <> ant then sdl.print('deleting wrong ant');
+  {$ENDIF}
+  lastIdx := items.count -1;
+  tempAnt := items.list[ lastIdx ];
+  items.List[ idx ] := tempAnt;
+  tempAnt.ListRefIdx[listRef] := idx;
+  //delete last and free
+  items.Delete(lastIdx);
+  dispose(ant);
 end;
 
 procedure TAntPack.solveCollisions(passLevelFunc: TPassLevelfunc);
@@ -262,6 +283,8 @@ begin
     ant.friction := 1;
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
+    ant.dirWish := ant.dir;
+    //ant.setRot(0.5);
     ant.ListRefIdx[listRef] :=  items.add(ant);
     if listRef = lrOwner then ant.owner := self;
     

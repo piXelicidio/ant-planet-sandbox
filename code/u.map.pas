@@ -55,6 +55,7 @@ type
     procedure draw;
     function getPassLevel( x, y : single ):integer;
     procedure RemoveCell(xg, yg: integer );
+    procedure removeAnt( ant :PAnt );
     procedure SetCell(xg, yg: integer; cellType:TCellTypes);
     procedure detectAntCellEvents( ants :TAntPack );
     function WorldToGrid( vec:TVec2d ):TVec2di;inline;
@@ -169,12 +170,12 @@ begin
     end;
 
     //draw cursor;
-    {
+
     if (currMouse.x <> -1) and (currMouse.y <>-1) then
     begin
       sdl.setColor(255,255,255);
-      sdl.drawRectLines(cam.x + currMouse.x * cfg.mapCellSize, cam.y+currMouse.y * cfg.mapCellSize, cfg.mapCellSize, cfg.mapCellSize );
-    end;     }
+      sdl.drawRectFix(cam.x + currMouse.x * cfg.mapCellSize, cam.y+currMouse.y * cfg.mapCellSize, cfg.mapCellSize, cfg.mapCellSize);
+    end;
 end;
 
 procedure TMap.finalize;
@@ -267,6 +268,15 @@ begin
   if (posg.y>=0) and (posg.y < fH) then currMouse.y :=posg.y;
 end;
 
+procedure TMap.removeAnt(ant: PAnt);
+var
+  xg, yg :integer;
+begin
+  xg := ant.gridPos.x;
+  yg := ant.gridPos.y;
+  grid[xg, yg].antsArray_delete(ant);
+end;
+
 procedure TMap.RemoveCell(xg, yg: integer);
 var
   i:integer  ;
@@ -344,14 +354,14 @@ procedure TMapData.antsArray_delete(ant: PAnt);
 var
   tempAnt :PAnt;
 begin
-  //fastest delete; set the current ant item with the value from the last ant in the array (this could kaput if we are not careful)
-
   {$IFDEF DEBUG}
   //unnecesary error checking
   if antsCount<=0 then sdl.print('nothing to delete here');
   if ants[ ant.ListRefIdx[lrGrid] ] <> ant then sdl.print('deleting wrong ant');
   {$ENDIF}
 
+  //fastest delete; set the current ant item with the value from the last ant in the array (this could kaput if we are not careful)
+  //also less destructive, we don''t have to update other ants indexes, since only one was moved
   tempAnt := ants[ antsCount-1 ];
   ants[ ant.ListRefIdx[lrGrid] ] := tempAnt;
   tempAnt.ListRefIdx[lrGrid] := ant.ListRefIdx[lrGrid];

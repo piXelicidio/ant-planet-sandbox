@@ -13,6 +13,10 @@ type
   /// Creates and contains the Ants and map.
   ///</summary>
   TSimulation = class
+    private
+      //destructive zone
+      fAntsToRemove :TAntList;
+      fSomethingToDestroy :boolean;
     public
       ants  :TAntPack;
       map   :TMap;
@@ -21,6 +25,7 @@ type
       procedure init;
       procedure finalize;
       procedure update;
+      procedure DestructionTime;
       ///<<summary>The algorithm based on pheromones that does the magic</summary>
       procedure phero_algorithm;
       procedure draw;
@@ -99,7 +104,9 @@ end;
 
 procedure TSimulation.RemoveAnt(ant: PAnt);
 begin
-  //
+  //schedule to remove and free;
+  fAntsToRemove.Add(ant);
+  fSomethingToDestroy := true;
 end;
 
 procedure TSimulation.update;
@@ -109,6 +116,11 @@ begin
   ants.solveCollisions( map.getPassLevel );
   map.detectAntCellEvents( ants );
   phero_Algorithm;
+  if fSomethingToDestroy then
+  begin
+    DestructionTime;
+    fSomethingToDestroy := false;
+  end;
   frameTimer.nextFrame;
 end;
 
@@ -118,7 +130,7 @@ var
   i: Integer;
 begin
   newAnts := TAntList.Create;
-  ants.addNewAndInit(count, lrIgnore, newAnts);
+  ants.addNewAndInit(count, lrOwner, newAnts);
   for i := 0 to newAnts.Count-1 do
   begin
     map.grid[0,0].antsArray_add( newAnts.List[i] );
@@ -131,6 +143,9 @@ begin
   map := TMap.Create;
   ants := TAntPack.Create;
   ants.antOwner := true;
+
+  fAntsToRemove := TAntList.Create;
+  fSomethingToDestroy := false;
 end;
 
 procedure TSimulation.DeleteAnts(count: integer);
@@ -149,7 +164,24 @@ destructor TSimulation.Destroy;
 begin
   map.Free;
   ants.Free;
+  fAntsToRemove.Free;
   inherited;
+end;
+
+procedure TSimulation.DestructionTime;
+var
+  ant :PAnt;
+  i :integer;
+begin
+  //ants
+  for i := 0  to fAntsToRemove.Count-1 do
+  begin
+    ant := fAntsToRemove.List[i];
+    map.removeAnt(ant);
+    ant.owner.removeAnt(ant, lrOwner );
+    // ant.owner.items.dele
+  end;
+  fAntsToRemove.clear;
 end;
 
 procedure TSimulation.draw;

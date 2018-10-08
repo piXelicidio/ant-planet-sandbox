@@ -75,7 +75,7 @@ initialization
     windowH := 720;
     screenLogicalHight := 1080;  //With logical Height as 1080, application will will think is at 1080p on all screen resolutions.
     numAnts := 5000;
-    numIncAnts := 400;
+    numIncAnts := 500;
     numDebugAnts := 3;
     antMaxSpeed := 2.2;
     antErratic := 0.12;
@@ -87,7 +87,7 @@ initialization
     mapCellSize := 64;
     debugPheromones := false;
     camMaxZoom := 2;
-    camMinZoom := 0.2;
+    camMinZoom := 0.5;
   end;
 
   frameTimer := TFrameTimer.create;

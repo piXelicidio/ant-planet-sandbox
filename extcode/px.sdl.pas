@@ -4,7 +4,8 @@ interface
 
 uses
   sdl2, sdl2_image, sdl2_ttf,
-  sysutils, generics.collections;
+  sysutils, generics.collections,
+  system.math;
 
 type
 
@@ -70,6 +71,9 @@ type
       //TODO: textures in StringList? and check to no reload same texturet twice?
       TTextureList = TList<PSDL_Texture>;
       TFontList = TList<PBitmapFont>;
+      TVec2d = record
+        x,y :single;
+      end;
     private
       fStarted :boolean;
       fBasePath :string;
@@ -93,7 +97,7 @@ type
       fFonts    : TFontList;
       fFont     : PBitmapFont;
       fDefaultFont  :PBitmapFont;
-
+      fScaleQueue :TStack<TVec2d>;
       fMainLoop :TProc;
       fFrameCounter :Uint32;
       fAveFPS   :Uint32;
@@ -112,8 +116,6 @@ type
       fOnMouseWheel :TEventMouseWheel;
       fOnUserQuit :TEventUserQuit;
 
-
-      fTempRect :TSDL_Rect;
       fDemoX, fDemoY : LongInt;
       fDemoIncX, fDemoIncY : LongInt;
       fExitMainLoop: Boolean;
@@ -141,7 +143,7 @@ type
       procedure setColor( r, g, b:UInt8; a :UInt8 = 255 );overload;inline;
       procedure setColor(const sdlColor :TSDL_Color );overload;inline;
       procedure drawRect( x, y, w, h :SInt32; fill:boolean = false );inline;
-      procedure drawRectLines( x, y, w, h :SInt32; fill:boolean = false );inline;//draw a rectangles with lines...
+      procedure drawRectFix( x, y, w, h :SInt32; fill:boolean = false );inline;
       procedure drawSprite(var sprite :TSprite; ax, ay :integer  );overload;//inline;
       procedure drawSprite(var sprite :TSprite; ax, ay :integer; angle :single);overload;//inline;
       function loadTexture( filename: string  ):PSDL_Texture;overload;
@@ -163,6 +165,8 @@ type
       function toString( s :PAnsiChar ):string;
       function rect( ax, ay, aw, ah :integer ):TSDL_Rect;
       function color( r, g, b :byte; a: byte = 255 ):TSDL_Color;
+      procedure ScalePush;
+      procedure ScalePop;
 
     public //input
       property onKeyDown:TEventKeypress read fOnKeyDown write fOnKeyDown;
@@ -374,6 +378,7 @@ begin
   fFonts := TFontList.Create;
   setFixedFPS(0);
   fShowFrameProfiler := false;
+  fScaleQueue := TStack<TVec2d>.create;
 end;
 
 {
@@ -454,7 +459,7 @@ end;
 
 destructor Tsdl.destroy;
 begin
-
+  fScaleQueue.Free;
 end;
 
 procedure Tsdl.finalizeAll;
@@ -732,25 +737,27 @@ begin
   tempRect.y := y;
   tempRect.w := w;
   tempRect.h := h;
-  if fill then SDL_RenderFillRect(fRend, @fTempRect) else   SDL_RenderDrawRect(fRend, @fTempRect);;
+  if fill then SDL_RenderFillRect(fRend, @TempRect) else   SDL_RenderDrawRect(fRend, @TempRect);;
 end;
 
-///<summary> Why this abominations, because the SDL rectangle is broken when scaled down</summary>
-procedure Tsdl.drawRectLines(x, y, w, h: SInt32; fill: boolean);
+{
+  A dirty fix the problem of rectangles sides disapearing when app is scaled down,
+  set scale to 1:1 draw then restore scale
+}
+procedure Tsdl.drawRectFix(x, y, w, h: SInt32; fill: boolean);
 var
-  pts :array[0..4] of TSDL_Point;
+  tempRect :TSDL_Rect;
+  sx, sy :single;
 begin
-  pts[0].x := x;
-  pts[0].y := y;
-  pts[1].x := x+w;
-  pts[1].y := y;
-  pts[2].x := x+w;
-  pts[2].y := y+h;
-  pts[3].x := x;
-  pts[3].y := y+h;
-  pts[4].x := x;
-  pts[4].y := y;
-  SDL_RenderDrawLines(fRend, @pts[0], 5);
+  SDL_RenderGetScale(fRend, @sx, @sy);
+  ScalePush;
+  SDL_RenderSetScale(fRend, 1,1);
+  tempRect.x := floor(x * sx);
+  tempRect.y := floor(y * sy);
+  tempRect.w := floor(w * sx);
+  tempRect.h := floor(h * sy);
+  if fill then SDL_RenderFillRect(fRend, @TempRect) else   SDL_RenderDrawRect(fRend, @TempRect);
+  ScalePop;
 end;
 
 procedure Tsdl.drawSprite(var sprite: TSprite; ax, ay: integer; angle: single);
@@ -888,6 +895,22 @@ begin
   end;
 end;
 
+
+procedure Tsdl.ScalePop;
+var
+  v :TVec2d;
+begin
+  v :=  fScaleQueue.pop;
+  SDL_RenderSetScale(fRend, v.x, v.y );
+end;
+
+procedure Tsdl.ScalePush;
+var
+  v :TVec2d;
+begin
+  SDL_RenderGetScale(fRend, @v.x, @v.y);
+  fScaleQueue.push(v);
+end;
 
 initialization
   sdl := Tsdl.create;
