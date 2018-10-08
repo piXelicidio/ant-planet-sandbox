@@ -283,7 +283,8 @@ begin
     ant.friction := 1;
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
-    ant.dirWish := ant.dir;
+    ant.dirWish := ant.dir;   //TODO: This line is creating the wall magnetism issue!! grr
+    ant.dirWishDuration := 10; //initializing with something
     //ant.setRot(0.5);
     ant.ListRefIdx[listRef] :=  items.add(ant);
     if listRef = lrOwner then ant.owner := self;
