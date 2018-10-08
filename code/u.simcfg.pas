@@ -46,6 +46,7 @@ type
     windowH  :integer;
     screenLogicalHight :integer;
     numAnts  :integer;
+    numIncAnts :integer;
     numDebugAnts :integer;
     antMaxSpeed :single;
     antErratic :single;
@@ -72,8 +73,9 @@ initialization
   begin
     windowW := 1280;
     windowH := 720;
-    screenLogicalHight := 1080;
-    numAnts := 2000;
+    screenLogicalHight := 1080;  //With logical Height as 1080, application will will think is at 1080p on all screen resolutions.
+    numAnts := 5000;
+    numIncAnts := 400;
     numDebugAnts := 3;
     antMaxSpeed := 2.2;
     antErratic := 0.12;

@@ -16,6 +16,8 @@ uses
 type
   TListRef = (lrIgnore, lrOwner, lrGrid);
 
+  TAntPack = class;
+
   PAnt = ^TAnt;
   ///<summary>Our Ant-Data, a record with basic methods. Most important processings are done in TAntPack</summary>
   TAnt = record
@@ -29,6 +31,7 @@ type
       procedure storePosition(const vec :TVec2d );
       procedure resetPositionMemory(const vec :TVec2d );
     public
+      owner :TAntPack;
       dirWish : TVec2d;  //direction ant want to go
       dirWishDuration :integer; //wish will expire after many frames.
       pos :TVec2d;  //position
@@ -75,8 +78,10 @@ type
       constructor Create;
       destructor Destroy;override;
       procedure Init;
-      ///<summary>create and init a bunch of ants, and add them to the list.</summary>
-      procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore  );
+      ///<summary>create and init a bunch of ants, and add them to the list.
+      /// return in addedAnts a list of the just added ants
+      ///</summary>
+      procedure addNewAndInit( amount:integer; listRef :TListRef = lrIgnore; const addedAnts :TAntList = nil  );
       procedure draw;
       procedure update;
       ///<summary>Solve ants collisions, avoid obstacles, allow or fix movement</summary>
@@ -237,7 +242,7 @@ begin
   end;
 end;
 
-procedure TAntPack.addNewAndInit( amount: integer; listRef:TListRef = lrIgnore);
+procedure TAntPack.addNewAndInit( amount: integer; listRef:TListRef = lrIgnore;const addedAnts :TAntList = nil);
 var
   ant :PAnt;
   i, p: Integer;
@@ -258,6 +263,8 @@ begin
     ant.lastPos := ant.pos;
     ant.setRot(random*pi*2);
     ant.ListRefIdx[listRef] :=  items.add(ant);
+    if listRef = lrOwner then ant.owner := self;
+    
     ant.isWalkingOver := ctGround;
     ant.cargo := false;
     for p := 0 to high(ant.pastPositions) do
@@ -272,6 +279,8 @@ begin
     end;
     ant.lookingFor := ctFood;
     ant.comingFrom := ctCave;
+    if addedAnts <> nil  then addedAnts.Add(ant);
+    
   end;
 end;
 

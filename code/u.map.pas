@@ -44,6 +44,7 @@ type
     fMaxY :integer;
     fGround :PSDL_Texture;
     fBlock :PSDL_Texture;
+    currMouse :TVec2di;                          //if currMouse.x or .y is -1 then mouse is out of map;
   public
     grid  :array of array of TMapData;
     constructor Create;
@@ -58,6 +59,7 @@ type
     procedure detectAntCellEvents( ants :TAntPack );
     function WorldToGrid( vec:TVec2d ):TVec2di;inline;
     function CheckInGrid( xg, yg :integer ):boolean;inline;
+    procedure MouseCursor(const posg :TVec2di  );
     property W:integer read fW;
     property H:integer read fH;
   end;
@@ -165,6 +167,14 @@ begin
       //debug antCount / capacity
       //sdl.drawText(IntToStr(gdata.antsCount) + '/' + IntToStr(Length(gdata.ants)), rect.x, rect.y);
     end;
+
+    //draw cursor;
+    {
+    if (currMouse.x <> -1) and (currMouse.y <>-1) then
+    begin
+      sdl.setColor(255,255,255);
+      sdl.drawRectLines(cam.x + currMouse.x * cfg.mapCellSize, cam.y+currMouse.y * cfg.mapCellSize, cfg.mapCellSize, cfg.mapCellSize );
+    end;     }
 end;
 
 procedure TMap.finalize;
@@ -247,6 +257,15 @@ begin
   SetCell(W-2, H-2, ctFood);
 end;
 
+
+procedure TMap.MouseCursor(const posg: TVec2di);
+begin
+  //if currMouse.x or .y is -1 then mouse is out of map;
+  currMouse.x := -1;
+  currMouse.y := -1;
+  if (posg.x>=0) and (posg.x < fW) then currMouse.x :=posg.x;
+  if (posg.y>=0) and (posg.y < fH) then currMouse.y :=posg.y;
+end;
 
 procedure TMap.RemoveCell(xg, yg: integer);
 var

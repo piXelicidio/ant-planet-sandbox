@@ -24,6 +24,10 @@ type
       ///<<summary>The algorithm based on pheromones that does the magic</summary>
       procedure phero_algorithm;
       procedure draw;
+
+      procedure AddAnts( count :integer );
+      procedure DeleteAnts( count :integer );
+      procedure RemoveAnt( ant :PAnt);
   end;
 var
   sim :TSimulation;
@@ -93,6 +97,11 @@ begin
   end;
 end;
 
+procedure TSimulation.RemoveAnt(ant: PAnt);
+begin
+  //
+end;
+
 procedure TSimulation.update;
 begin
   map.update;
@@ -103,11 +112,37 @@ begin
   frameTimer.nextFrame;
 end;
 
+procedure TSimulation.AddAnts(count: integer);
+var
+  newAnts :TAntList;
+  i: Integer;
+begin
+  newAnts := TAntList.Create;
+  ants.addNewAndInit(count, lrIgnore, newAnts);
+  for i := 0 to newAnts.Count-1 do
+  begin
+    map.grid[0,0].antsArray_add( newAnts.List[i] );
+  end;
+  newAnts.Free;
+end;
+
 constructor TSimulation.create;
 begin
   map := TMap.Create;
   ants := TAntPack.Create;
   ants.antOwner := true;
+end;
+
+procedure TSimulation.DeleteAnts(count: integer);
+var
+  i :integer;
+begin
+  //this is not that simple
+  if ants.items.Count < count then count := ants.items.Count;
+  for i := 0  to count-1 do
+  begin
+    RemoveAnt( ants.items.List[ ants.items.Count - i - 1] );
+  end;
 end;
 
 destructor TSimulation.Destroy;

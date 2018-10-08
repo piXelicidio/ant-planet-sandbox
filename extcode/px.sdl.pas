@@ -141,6 +141,7 @@ type
       procedure setColor( r, g, b:UInt8; a :UInt8 = 255 );overload;inline;
       procedure setColor(const sdlColor :TSDL_Color );overload;inline;
       procedure drawRect( x, y, w, h :SInt32; fill:boolean = false );inline;
+      procedure drawRectLines( x, y, w, h :SInt32; fill:boolean = false );inline;//draw a rectangles with lines...
       procedure drawSprite(var sprite :TSprite; ax, ay :integer  );overload;//inline;
       procedure drawSprite(var sprite :TSprite; ax, ay :integer; angle :single);overload;//inline;
       function loadTexture( filename: string  ):PSDL_Texture;overload;
@@ -724,12 +725,32 @@ begin
 end;
 
 procedure Tsdl.drawRect(x, y, w, h: SInt32; fill:boolean = false );
+var
+  tempRect :TSDL_Rect;
 begin
-  fTempRect.x := x;
-  fTempRect.y := y;
-  fTempRect.w := w;
-  fTempRect.h := h;
+  tempRect.x := x;
+  tempRect.y := y;
+  tempRect.w := w;
+  tempRect.h := h;
   if fill then SDL_RenderFillRect(fRend, @fTempRect) else   SDL_RenderDrawRect(fRend, @fTempRect);;
+end;
+
+///<summary> Why this abominations, because the SDL rectangle is broken when scaled down</summary>
+procedure Tsdl.drawRectLines(x, y, w, h: SInt32; fill: boolean);
+var
+  pts :array[0..4] of TSDL_Point;
+begin
+  pts[0].x := x;
+  pts[0].y := y;
+  pts[1].x := x+w;
+  pts[1].y := y;
+  pts[2].x := x+w;
+  pts[2].y := y+h;
+  pts[3].x := x;
+  pts[3].y := y+h;
+  pts[4].x := x;
+  pts[4].y := y;
+  SDL_RenderDrawLines(fRend, @pts[0], 5);
 end;
 
 procedure Tsdl.drawSprite(var sprite: TSprite; ax, ay: integer; angle: single);

@@ -53,6 +53,7 @@ TArea = class
     fParent :TArea;
     fPapaOwnsMe :boolean;
     fChilds :TListAreas;
+    fLastChildAdded :TArea;
     fRect   :TSDL_Rect;   //rects X,Y are in Screen coordinates;
     fLocal  :TSDL_Point;    //Local coordinates;
     fCatchInput :boolean;
@@ -92,7 +93,7 @@ TArea = class
     procedure setWH( w,h :integer );virtual;
     procedure addChild( newChild : TArea);overload;
     procedure addChild( newChild : TArea; alignX, alignY:single );overload;
-    procedure addChildBellow( newChild, bellowWho :TArea; sameWH:boolean = false; alignX :single = 0 ); //both has to be childs
+    procedure addChildBellow( newChild:TArea; bellowWho :TArea = nil; sameWH:boolean = false; alignX :single = 0 ); //both has to be childs
     procedure draw;virtual;
 
     function Consume_MouseButton(const mEvent : TSDL_MouseButtonEvent ):boolean;
@@ -194,6 +195,7 @@ begin
   if (newChild<>self) and (newChild<>nil) then
   begin
     fChilds.Add(newChild);
+    fLastChildAdded := newChild;
     newChild.fPapaOwnsMe := true;
     newChild.fParent := self;
   end else sdl.errorMsg('GUI: You cannot add itself or nil as TArea child');
@@ -301,6 +303,7 @@ begin
   TextAlignX := 0.5;
   TextAlignY := 0.5;
   contentPadding := 2;
+  fLastChildAdded := nil;
 end;
 
 destructor TArea.Destroy;
@@ -376,6 +379,7 @@ begin
   if (newChild<>self) and (newChild<>nil) then
   begin
     fChilds.Add(newChild);
+    fLastChildAdded := newChild;
     newChild.fPapaOwnsMe := true;
     newChild.fParent := self;
     TArea.Align(self, newChild, alignX, alignY);
@@ -386,9 +390,12 @@ procedure TArea.addChildBellow(newChild, bellowWho: TArea; sameWH:boolean; align
 var
   newPos :TSDL_Point;
 begin
+  if BellowWho = nil then bellowWho := fLastChildAdded;
+
   if (newChild<>self) and (newChild<>nil) then
   begin
     fChilds.Add(newChild);
+    fLastChildAdded := newChild;
     newChild.fPapaOwnsMe := true;
     newChild.fParent := self;
     if sameWH then newChild.setWH(bellowWho.width, bellowWho.height);

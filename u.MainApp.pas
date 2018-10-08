@@ -23,8 +23,12 @@ type
 
       ///<summary>Process a click on the map to interact with it.</summary>
       procedure doScreenClick(x, y:integer; move:boolean);
+
+      //ui events
       ///<summary>When the checkbox for showing pheromones is clicked</summary>
       procedure ShowPheromsClick( sender:TArea;const mMouse: TSDL_MouseButtonEvent);
+      procedure MoreAntsClick( sender:TArea;const mMouse: TSDL_MouseButtonEvent);
+      procedure LessAntsClick( sender:TArea;const mMouse: TSDL_MouseButtonEvent);
 
       procedure onMouseDown(const mMouse:TSDL_MouseButtonEvent);
       procedure onMouseMove(const mMouse:TSDL_MouseMotionEvent);
@@ -65,7 +69,7 @@ begin
   sdl.cfg.window.h := cfg.windowH;
   sdl.cfg.window.fullScreenType := SDL_WINDOW_FULLSCREEN_DESKTOP;
   sdl.cfg.RenderFlags := SDL_RENDERER_ACCELERATED;
-  sdl.cfg.defaultFontSize := 12;
+  sdl.cfg.defaultFontSize := 16;
   sdl.showDriversInfo;
   sdl.cfg.RenderDriverIndex := -1;
   sdl.setFixedFPS(60);
@@ -85,7 +89,9 @@ begin
   sdl.fullScreen := false;
   logical.x := (cfg.screenLogicalHight * sdl.window.w)  div sdl.window.h;
   logical.y := cfg.screenLogicalHight;
+  //Resolution independent screen dimenstions, work always like height is at 1080p
   sdl.LogicalSize := logical;
+  //LogicalSize in fact modifies SDL Scale, so lets take it back too.
   SDL_RenderGetScale( sdl.rend, @cam.appScale.x, @cam.appScale.y);
   cam.x := 20;
   cam.y := 10;
@@ -96,13 +102,21 @@ begin
   gui := TAppGui.create;
   gui.init;
   gui.checkPheroms.OnMouseClick  := ShowPheromsClick;
-//  gui.checkPheroms.OnMouseClick := Show
+  gui.btnMoreAnts.OnMouseClick := MoreAntsClick;
+  gui.btnLessAnts.OnMouseClick := LessAntsClick;
 
   sdl.OnMouseDown := onMouseDown;
   sdl.OnMouseUp := onMouseUp;
   sdl.OnMouseMove := onMouseMove;
   sdl.OnMouseWheel := onMouseWheel;
   sdl.onKeyDown := onKeyDown;
+end;
+
+procedure TMainApp.MoreAntsClick(sender: TArea;
+  const mMouse: TSDL_MouseButtonEvent);
+begin
+  sdl.print('Adding ants');
+  sim.addAnts(cfg.numIncAnts);
 end;
 
 procedure TMainApp.update;
@@ -132,7 +146,7 @@ begin
   sim.draw;
   //restoring the scale to 1:1 for drawing the UI
   SDL_RenderSetScale( sdl.rend, 1, 1);
-  // SDL_RenderSetScale(sdl.rend, appScale.x, appScale.y); //for highdef displays..
+// SDL_RenderSetScale(sdl.rend, cam.appScale.x, cam.appScale.y); //for highdef displays..
   gui.screen.draw;
 end;
 
@@ -174,7 +188,11 @@ end;
 procedure TMainApp.onMouseMove(const mMouse: TSDL_MouseMotionEvent);
 var
   moveStep :integer;
+  posg :TVec2di;
+  posw :TVec2d;
 begin
+  posw := cam.ScreenToWorld(mMouse.x, mMouse.y); //TODO: NO FUNCHIONA
+  posg := sim.map.WorldToGrid( posw  );
   //check if the UI consumes the interaction first
   if not gui.screen.Consume_MouseMove(mMouse) then
   begin
@@ -189,7 +207,8 @@ begin
       cam.y := cam.y + round( mMouse.yrel / cam.zoom / cam.appScale.y );
     end;
 
-
+    //Tell map where is the mouse for mouse cursor in map
+    sim.map.MouseCursor(posg);
   end;
 end;
 
@@ -223,16 +242,19 @@ begin
   if  gui.radioTool.SelectedText='remove' then  sim.map.RemoveCell(posg.x, posg.y);
 end;
 
+procedure TMainApp.LessAntsClick(sender: TArea;
+  const mMouse: TSDL_MouseButtonEvent);
+begin
+  sim.DeleteAnts(cfg.numIncAnts);
+end;
+
+
 procedure TMainApp.Finalize;
 begin
  gui.Free;
   sim.finalize;
   //guiso.Free;
 end;
-
-
-
-
 
 initialization
   mainApp := TMainApp.Create;
