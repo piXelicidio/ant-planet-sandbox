@@ -22,7 +22,7 @@ type
       gui :TAppGui;
 
       ///<summary>Process a click on the map to interact with it.</summary>
-      procedure doScreenClick(x, y:integer; move:boolean);
+      procedure doScreenClick(x, y:integer; move:boolean; lbutton:boolean);
 
       //ui events
       ///<summary>When the checkbox for showing pheromones is clicked</summary>
@@ -179,8 +179,8 @@ begin
   if not gui.screen.Consume_MouseButton(mMouse) then
   begin
     case mMouse.button of
-      SDL_BUTTON_LEFT: doScreenClick(mMouse.x, mMouse.y, false);
-      SDL_BUTTON_RIGHT: ;
+      SDL_BUTTON_LEFT: doScreenClick(mMouse.x, mMouse.y, false, true);
+      SDL_BUTTON_RIGHT: doScreenClick(mMouse.x, mMouse.y, false, false);
     end;
   end;
 end;
@@ -199,7 +199,8 @@ begin
     //Notice that on MouseMove the mMouse.state is bitmask of the buttons,
     //while on MouseDown mMouse.state is the state of pressed or released
     //see: https://wiki.libsdl.org/SDL_MouseMotionEvent
-    if (mMouse.state and SDL_BUTTON_LMASK)>0 then doScreenClick(mMouse.x, mMouse.y, true);
+    if (mMouse.state and SDL_BUTTON_LMASK)>0 then doScreenClick(mMouse.x, mMouse.y, true, true)
+      else if (mMouse.state and SDL_BUTTON_RMASK)>0 then doScreenClick(mMouse.x, mMouse.y, true, false);
 
     if (mMouse.state and SDL_BUTTON_MMASK)>0 then
     begin {panning}
@@ -223,23 +224,33 @@ begin
   cam.zoomInc( mMouse.y/10 );
 end;
 
-procedure TMainApp.doScreenClick(x, y: integer; move:boolean);
+procedure TMainApp.doScreenClick(x, y: integer; move:boolean; lbutton:boolean);
 var
   posg :TVec2di;
   posw :TVec2d;
+  radioText :string;
 begin
   posw := cam.ScreenToWorld(x,y);
   posg := sim.map.WorldToGrid( posw  );
-
-  if  gui.radioTool.SelectedText='block' then  sim.map.SetCell(posg.x, posg.y, ctBlock)
-  else
-  if  gui.radioTool.SelectedText='food' then  sim.map.SetCell(posg.x, posg.y, ctFood)
-  else
-  if  (gui.radioTool.SelectedText='cave') and not move then  sim.map.SetCell(posg.x, posg.y, ctCave)
-  else
-    if  gui.radioTool.SelectedText='grass' then  sim.map.SetCell(posg.x, posg.y, ctGrass)
-  else
-  if  gui.radioTool.SelectedText='remove' then  sim.map.RemoveCell(posg.x, posg.y);
+  radioText := gui.radioTool.SelectedText;
+  if lbutton then
+  begin
+    if  radioText='block' then  sim.map.SetCell(posg.x, posg.y, ctBlock)
+    else
+    if  radioText='food' then  sim.map.SetCell(posg.x, posg.y, ctFood)
+    else
+    if  (radioText='cave') and not move then  sim.map.SetCell(posg.x, posg.y, ctCave)
+    else
+    if  radioText='grass' then  sim.map.SetCell(posg.x, posg.y, ctGrass)
+    else
+    if radioText = 'ants' then  sim.AddAnts(10, posg);
+  end else
+  begin
+    if radioText = 'ants' then
+    begin
+      sim.DeleteAnts(posg);
+    end else sim.map.RemoveCell(posg.x, posg.y);
+  end;
 end;
 
 procedure TMainApp.LessAntsClick(sender: TArea;

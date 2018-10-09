@@ -59,7 +59,7 @@ type
     procedure SetCell(xg, yg: integer; cellType:TCellTypes);
     procedure detectAntCellEvents( ants :TAntPack );
     function WorldToGrid( vec:TVec2d ):TVec2di;inline;
-    function CheckInGrid( xg, yg :integer ):boolean;inline;
+    function CheckInGrid( xg, yg :integer; border:integer=0 ):boolean;inline;
     procedure MouseCursor(const posg :TVec2di  );
     property W:integer read fW;
     property H:integer read fH;
@@ -70,9 +70,9 @@ implementation
 { TMap }
 
 
-function TMap.CheckInGrid(xg, yg: integer): boolean;
+function TMap.CheckInGrid(xg, yg: integer; border:integer=0): boolean;
 begin
-  result := (xg >= 0)  and (xg < W) and (yg >= 0) and (yg < H)
+  result := (xg >= border)  and (xg < (W-border)) and (yg >= border) and (yg < (H-border));
 end;
 
 constructor TMap.Create;

@@ -5,7 +5,8 @@ interface
     u.simcfg,
     u.map,
     u.cell,
-    u.ants;
+    u.ants,
+    px.vec2d;
 
 
 type
@@ -30,8 +31,10 @@ type
       procedure phero_algorithm;
       procedure draw;
 
-      procedure AddAnts( count :integer );
-      procedure DeleteAnts( count :integer );
+      procedure AddAnts( count :integer );overload;
+      procedure AddAnts( count :integer; const posg:TVec2di);overload;
+      procedure DeleteAnts( count :integer );overload;
+      procedure DeleteAnts( posg :TVec2di );overload;
       procedure RemoveAnt( ant :PAnt);
   end;
 var
@@ -105,8 +108,11 @@ end;
 procedure TSimulation.RemoveAnt(ant: PAnt);
 begin
   //schedule to remove and free;
-  fAntsToRemove.Add(ant);
-  fSomethingToDestroy := true;
+  if not fAntsToRemove.Contains(ant) then
+  begin
+    fAntsToRemove.Add(ant);
+    fSomethingToDestroy := true;
+  end;
 end;
 
 procedure TSimulation.update;
@@ -138,6 +144,25 @@ begin
   newAnts.Free;
 end;
 
+procedure TSimulation.AddAnts(count: integer; const posg: TVec2di);
+var
+  newAnts :TAntList;
+  i: Integer;
+begin
+  if map.CheckInGrid(posg.x, posg.y, 1) then
+  begin
+    newAnts := TAntList.Create;
+    ants.addNewAndInit(count, lrOwner, newAnts);
+    for i := 0 to newAnts.Count-1 do
+    begin
+      map.grid[0, 0].antsArray_add( newAnts.List[i] );
+      newAnts.List[i].pos.x := posg.x * cfg.mapCellSize + random(cfg.mapCellSize);
+      newAnts.List[i].pos.y := posg.y * cfg.mapCellSize + random(cfg.mapCellSize);
+    end;
+    newAnts.Free;
+  end;
+end;
+
 constructor TSimulation.create;
 begin
   map := TMap.Create;
@@ -157,6 +182,19 @@ begin
   for i := 0  to count-1 do
   begin
     RemoveAnt( ants.items.List[ ants.items.Count - i - 1] );
+  end;
+end;
+
+procedure TSimulation.DeleteAnts(posg: TVec2di);
+var
+  i:integer;
+begin
+  if map.CheckInGrid(posg.x, posg.y, 1) then
+  begin
+    for i := 0 to map.grid[posg.x, posg.y].antsCount-1 do
+    begin
+      removeAnt( map.grid[posg.x, posg.y].ants[i] );
+    end;
   end;
 end;
 

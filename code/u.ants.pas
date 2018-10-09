@@ -182,7 +182,7 @@ begin
   {$IFDEF DEBUG}
   //unnecesary error checking
   if idx>= items.count then sdl.print('Out of list  range, deleting ant.');
-    if items.list[idx ] <> ant then sdl.print('deleting wrong ant');
+    if items.list[idx ] <> ant then sdl.print('removing wrong ant');
   {$ENDIF}
   lastIdx := items.count -1;
   tempAnt := items.list[ lastIdx ];
