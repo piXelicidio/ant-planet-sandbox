@@ -4,7 +4,8 @@ interface
   uses
     px.guiso,
     system.Classes,
-    u.simcfg
+    u.simcfg,
+    System.SysUtils
     ;
 
 
@@ -21,6 +22,8 @@ type
       radioTool :TGuisoRadioGroup;
       checkPheroms :TGuisoCheckBox;
       MainPanel :TGuisoPanel;
+      btnMoreAnts :TGuisoButton;
+      btnLessAnts :TGuisoButton;
       procedure init;
       constructor create;
       destructor Destroy;override;
@@ -69,7 +72,7 @@ begin
   strs.Add('cave');
   strs.Add('food');
 //  strs.Add('portal');
-  strs.add('remove');
+  strs.add('ants');
   radioTool := TGuisoRadioGroup.create(strs, MainPanel.width-20, 30);
   MainPanel.addChildBellow(radioTool, lblNumAnts);
 
@@ -77,6 +80,14 @@ begin
   MainPanel.addChildBellow( checkPheroms, radioTool );
   checkPheroms.Text := 'Pheroms';
   checkPheroms.setWH( 100, 30 );
+
+  btnMoreAnts := TGuisoButton.create;
+  MainPanel.addChildBellow( btnMoreAnts, nil, true);
+  btnMoreAnts.Text := '+ '+ IntToStr( cfg.numIncAnts ) +' ants';
+
+  btnLessAnts := TGuisoButton.create;
+  MainPanel.addChildBellow( btnLessAnts, nil, true);
+  btnLessAnts.Text := '- '+ IntToStr( cfg.numIncAnts ) +' ants';
 
 end;
 

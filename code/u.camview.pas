@@ -15,6 +15,7 @@ TCamView = class
   appScale :TVec2d;
   procedure ZoomInc( value :single );
   function ScreenToWorld( ax, ay :integer):TVec2d;
+  function WorldToScreen( ax, ay :single):TVec2di;
 end;
 
 var
@@ -30,8 +31,16 @@ begin
   result.y :=floor( ay / zoom / appScale.y - y);
 end;
 
+
+
 {doing a zoom, you must update zoomOrigin before to
  set the origin point in screen of the zoom}
+function TCamView.WorldToScreen(ax, ay: single): TVec2di;
+begin
+  Result.x := floor( zoom * appScale.x * ( ax + x ));
+  Result.y := floor( zoom * appScale.y * ( ay + y ));
+end;
+
 procedure TCamView.ZoomInc(value: single);
 var
   oldzoom :single;

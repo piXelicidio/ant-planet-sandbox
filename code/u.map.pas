@@ -44,6 +44,7 @@ type
     fMaxY :integer;
     fGround :PSDL_Texture;
     fBlock :PSDL_Texture;
+    currMouse :TVec2di;                          //if currMouse.x or .y is -1 then mouse is out of map;
   public
     grid  :array of array of TMapData;
     constructor Create;
@@ -54,10 +55,12 @@ type
     procedure draw;
     function getPassLevel( x, y : single ):integer;
     procedure RemoveCell(xg, yg: integer );
+    procedure removeAnt( ant :PAnt );
     procedure SetCell(xg, yg: integer; cellType:TCellTypes);
     procedure detectAntCellEvents( ants :TAntPack );
     function WorldToGrid( vec:TVec2d ):TVec2di;inline;
-    function CheckInGrid( xg, yg :integer ):boolean;inline;
+    function CheckInGrid( xg, yg :integer; border:integer=0 ):boolean;inline;
+    procedure MouseCursor(const posg :TVec2di  );
     property W:integer read fW;
     property H:integer read fH;
   end;
@@ -67,9 +70,9 @@ implementation
 { TMap }
 
 
-function TMap.CheckInGrid(xg, yg: integer): boolean;
+function TMap.CheckInGrid(xg, yg: integer; border:integer=0): boolean;
 begin
-  result := (xg >= 0)  and (xg < W) and (yg >= 0) and (yg < H)
+  result := (xg >= border)  and (xg < (W-border)) and (yg >= border) and (yg < (H-border));
 end;
 
 constructor TMap.Create;
@@ -165,6 +168,14 @@ begin
       //debug antCount / capacity
       //sdl.drawText(IntToStr(gdata.antsCount) + '/' + IntToStr(Length(gdata.ants)), rect.x, rect.y);
     end;
+
+    //draw cursor;
+
+    if (currMouse.x <> -1) and (currMouse.y <>-1) then
+    begin
+      sdl.setColor(255,255,255);
+      sdl.drawRectFix(cam.x + currMouse.x * cfg.mapCellSize, cam.y+currMouse.y * cfg.mapCellSize, cfg.mapCellSize, cfg.mapCellSize);
+    end;
 end;
 
 procedure TMap.finalize;
@@ -248,6 +259,24 @@ begin
 end;
 
 
+procedure TMap.MouseCursor(const posg: TVec2di);
+begin
+  //if currMouse.x or .y is -1 then mouse is out of map;
+  currMouse.x := -1;
+  currMouse.y := -1;
+  if (posg.x>=0) and (posg.x < fW) then currMouse.x :=posg.x;
+  if (posg.y>=0) and (posg.y < fH) then currMouse.y :=posg.y;
+end;
+
+procedure TMap.removeAnt(ant: PAnt);
+var
+  xg, yg :integer;
+begin
+  xg := ant.gridPos.x;
+  yg := ant.gridPos.y;
+  grid[xg, yg].antsArray_delete(ant);
+end;
+
 procedure TMap.RemoveCell(xg, yg: integer);
 var
   i:integer  ;
@@ -325,14 +354,14 @@ procedure TMapData.antsArray_delete(ant: PAnt);
 var
   tempAnt :PAnt;
 begin
-  //fastest delete; set the current ant item with the value from the last ant in the array (this could kaput if we are not careful)
-
   {$IFDEF DEBUG}
   //unnecesary error checking
   if antsCount<=0 then sdl.print('nothing to delete here');
   if ants[ ant.ListRefIdx[lrGrid] ] <> ant then sdl.print('deleting wrong ant');
   {$ENDIF}
 
+  //fastest delete; set the current ant item with the value from the last ant in the array (this could kaput if we are not careful)
+  //also less destructive, we don''t have to update other ants indexes, since only one was moved
   tempAnt := ants[ antsCount-1 ];
   ants[ ant.ListRefIdx[lrGrid] ] := tempAnt;
   tempAnt.ListRefIdx[lrGrid] := ant.ListRefIdx[lrGrid];
